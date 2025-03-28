@@ -1,0 +1,38 @@
+# Rider-specific files
+.idea/
+
+# Build output
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.suo
+*.userprefs
+*.sln.docstates
+
+# Package management
+packages/
+*.nupkg
+
+# Temporary files and build results
+*.cache
+*.log
+*_TemporaryGeneratedFile_*
+*.*proj.user
+*.csproj.vspscc
+*.vssscc
+
+# Executables and debug symbols
+*.exe
+*.dll
+*.pdb
+
+# Test results
+TestResults/
+
+# Publish output
+publish/
+
+# Other temporary files
+*.resharper.user*
