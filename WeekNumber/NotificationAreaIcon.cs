@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Drawing.Text;
+using System.Globalization;
 
 namespace WeekNumber;
 
@@ -19,6 +20,8 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu = new();
     private bool _disposed;
+    
+    private readonly Font _font = new("Segoe UI", 48, FontStyle.Regular);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -29,7 +32,7 @@ public sealed class NotificationAreaIcon : IDisposable
 
         _notifyIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Information,
+            Icon = CreateNumberIcon(ISOWeek.GetWeekOfYear(DateTime.Now)),
             Text = "Week Number",
             Visible = true,
             ContextMenuStrip = _contextMenu
@@ -57,6 +60,31 @@ public sealed class NotificationAreaIcon : IDisposable
     public void UpdateIcon(Icon newIcon)
     {
         _notifyIcon.Icon = newIcon;
+    }
+    
+    private Icon CreateNumberIcon(int number)
+    {
+        using var bitmap = new Bitmap(48, 48);
+        using var graphics = Graphics.FromImage(bitmap);
+        
+        // Set up high quality rendering
+        graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        
+        // Clear background to transparent
+        graphics.Clear(Color.Transparent);
+        
+        // Draw the number
+        var text = number.ToString();
+        var size = graphics.MeasureString(text, _font);
+        var x = (48 - size.Width) / 2;
+        var y = (48 - size.Height) / 2;
+        
+        graphics.DrawString(text, _font, Brushes.White, x, y);
+        
+        // Convert to icon
+        var handle = bitmap.GetHicon();
+        return Icon.FromHandle(handle);
     }
 
     public void Dispose()
