@@ -20,8 +20,9 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu = new();
     private bool _disposed;
-    
-    private readonly Font _font = new("Segoe UI", 48, FontStyle.Regular);
+    private readonly WeekNumber _weekNumber = new();
+
+    private readonly Font _font = new("Segoe UI", 40, FontStyle.Regular);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -32,8 +33,8 @@ public sealed class NotificationAreaIcon : IDisposable
 
         _notifyIcon = new NotifyIcon
         {
-            Icon = CreateNumberIcon(ISOWeek.GetWeekOfYear(DateTime.Now)),
-            Text = "Week Number",
+            Icon = CreateNumberIcon(_weekNumber.Number),
+            Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}",
             Visible = true,
             ContextMenuStrip = _contextMenu
         };
@@ -48,8 +49,12 @@ public sealed class NotificationAreaIcon : IDisposable
             return;
         }
 
-        var weekNumber = ISOWeek.GetWeekOfYear(DateTime.Now);
-        _notifyIcon.ShowBalloonTip(3000, "Week Number", $"Current week: {weekNumber}", ToolTipIcon.Info);
+        _weekNumber.UpdateNumber();
+
+        UpdateIcon();
+        UpdateText();
+        _notifyIcon.ShowBalloonTip(2000, $"Week: {_weekNumber.Number}",
+            $"{_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}", ToolTipIcon.Info);
     }
 
     private static void MenuExit_Click(object? sender, EventArgs e)
@@ -57,31 +62,36 @@ public sealed class NotificationAreaIcon : IDisposable
         Application.Exit();
     }
 
-    public void UpdateIcon(Icon newIcon)
+    private void UpdateIcon()
     {
-        _notifyIcon.Icon = newIcon;
+        _notifyIcon.Icon = CreateNumberIcon(_weekNumber.Number);
     }
-    
+
+    private void UpdateText()
+    {
+        _notifyIcon.Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
+    }
+
     private Icon CreateNumberIcon(int number)
     {
         using var bitmap = new Bitmap(48, 48);
         using var graphics = Graphics.FromImage(bitmap);
-        
+
         // Set up high quality rendering
         graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
         graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        
+
         // Clear background to transparent
         graphics.Clear(Color.Transparent);
-        
+
         // Draw the number
         var text = number.ToString();
         var size = graphics.MeasureString(text, _font);
         var x = (48 - size.Width) / 2;
         var y = (48 - size.Height) / 2;
-        
+
         graphics.DrawString(text, _font, Brushes.White, x, y);
-        
+
         // Convert to icon
         var handle = bitmap.GetHicon();
         return Icon.FromHandle(handle);
