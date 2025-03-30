@@ -11,6 +11,7 @@ internal static class Program
         ApplicationConfiguration.Initialize();
         
         using var weekNumberIcon = NotificationAreaIcon.Instance;
+        
         Application.Run();
     }
 }

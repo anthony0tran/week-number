@@ -29,6 +29,13 @@ public sealed class NotificationAreaIcon : IDisposable
     private NotificationAreaIcon()
     {
         var exitMenuItem = new ToolStripMenuItem("Exit", null, MenuExit_Click);
+        var startupMenuItem = new ToolStripMenuItem("Run at Startup", null, MenuStartup_Click)
+        {
+            Checked = StartupManager.IsStartupEnabled()
+        };
+        
+        _contextMenu.Items.Add(startupMenuItem);
+        _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
         _notifyIcon = new NotifyIcon
@@ -55,6 +62,13 @@ public sealed class NotificationAreaIcon : IDisposable
         UpdateText();
         _notifyIcon.ShowBalloonTip(2000, $"Week: {_weekNumber.Number}",
             $"{_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}", ToolTipIcon.Info);
+    }
+    
+    private void MenuStartup_Click(object? sender, EventArgs e)
+    {
+        var menuItem = (ToolStripMenuItem)sender!;
+        menuItem.Checked = !menuItem.Checked;
+        StartupManager.SetStartup(menuItem.Checked);
     }
 
     private static void MenuExit_Click(object? sender, EventArgs e)
