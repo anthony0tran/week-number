@@ -1,5 +1,7 @@
 # Rider-specific files
 .idea/
+*.sln.iml
+*.DotSettings.user
 
 # Build output
 bin/
