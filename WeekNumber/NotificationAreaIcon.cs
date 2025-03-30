@@ -64,7 +64,7 @@ public sealed class NotificationAreaIcon : IDisposable
             $"{_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}", ToolTipIcon.Info);
     }
     
-    private void MenuStartup_Click(object? sender, EventArgs e)
+    private static void MenuStartup_Click(object? sender, EventArgs e)
     {
         var menuItem = (ToolStripMenuItem)sender!;
         menuItem.Checked = !menuItem.Checked;
