@@ -22,7 +22,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private bool _disposed;
     private readonly WeekNumber _weekNumber = new();
 
-    private readonly Font _font = new("Segoe UI", 40, FontStyle.Regular);
+    private readonly Font _font = new("Segoe UI", 48, FontStyle.Regular, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
