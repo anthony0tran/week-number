@@ -16,31 +16,42 @@ public sealed class NotificationAreaIcon : IDisposable
 {
     private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon());
     private readonly NotifyIcon _notifyIcon;
+    private readonly ContextMenuStrip _contextMenu;
     private bool _disposed;
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
     private NotificationAreaIcon()
     {
+        _contextMenu = new ContextMenuStrip();
+        var exitMenuItem = new ToolStripMenuItem("Exit", null, MenuExit_Click);
+        _contextMenu.Items.Add(exitMenuItem);
+
         _notifyIcon = new NotifyIcon
         {
             Icon = SystemIcons.Information,
             Text = "Week Number",
-            Visible = true
+            Visible = true,
+            ContextMenuStrip = _contextMenu
         };
 
-        _notifyIcon.MouseClick += NotifyIcon_MouseClick;
+        _notifyIcon.MouseClick += NotifyIcon_LeftMouseClick;
     }
 
-    private void NotifyIcon_MouseClick(object sender, MouseEventArgs e)
+    private void NotifyIcon_LeftMouseClick(object? sender, MouseEventArgs e)
     {
         if (e.Button != MouseButtons.Left)
         {
             return;
         }
-        
+
         var weekNumber = ISOWeek.GetWeekOfYear(DateTime.Now);
         _notifyIcon.ShowBalloonTip(3000, "Week Number", $"Current week: {weekNumber}", ToolTipIcon.Info);
+    }
+
+    private static void MenuExit_Click(object? sender, EventArgs e)
+    {
+        Application.Exit();
     }
 
     public void UpdateIcon(Icon newIcon)
@@ -54,7 +65,7 @@ public sealed class NotificationAreaIcon : IDisposable
         {
             return;
         }
-        
+
         _notifyIcon.Dispose();
         _disposed = true;
     }
