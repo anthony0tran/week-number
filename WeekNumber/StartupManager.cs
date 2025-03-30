@@ -2,7 +2,7 @@
 
 public static class StartupManager
 {
-    private const string AppName = "WeekNumber";
+    private const string AppName = "WeekNumber_By_Anthony_Tran";
     private const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
     public static void SetStartup(bool enable)
