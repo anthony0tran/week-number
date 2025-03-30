@@ -14,16 +14,16 @@ namespace WeekNumber;
 /// </remarks>
 public sealed class NotificationAreaIcon : IDisposable
 {
+    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon());
     private readonly NotifyIcon _notifyIcon;
-    private readonly ContextMenuStrip _contextMenu;
+    private readonly ContextMenuStrip _contextMenu = new();
     private bool _disposed;
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
     private NotificationAreaIcon()
     {
-        _contextMenu = new ContextMenuStrip();
         var exitMenuItem = new ToolStripMenuItem("Exit", null, MenuExit_Click);
         _contextMenu.Items.Add(exitMenuItem);
 
