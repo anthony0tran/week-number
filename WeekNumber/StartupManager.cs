@@ -8,17 +8,20 @@ public static class StartupManager
     public static void SetStartup(bool enable)
     {
         using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, true);
-        if (key == null) return;
 
-        if (enable)
+        if (key == null)
         {
-            var exePath = Application.ExecutablePath;
-            key.SetValue(AppName, exePath);
+            return;
         }
-        else
+
+        if (!enable)
         {
             key.DeleteValue(AppName, false);
+            return;
         }
+
+        var exePath = Application.ExecutablePath;
+        key.SetValue(AppName, exePath);
     }
 
     public static bool IsStartupEnabled()
