@@ -19,10 +19,11 @@ public sealed class NotificationAreaIcon : IDisposable
     private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon());
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu = new();
-    private bool _disposed;
     private readonly WeekNumber _weekNumber = new();
+    private bool _disposed;
+    private const int IconSizeInPixels = 48;
 
-    private readonly Font _font = new("Segoe UI", 48, FontStyle.Regular, GraphicsUnit.Pixel);
+    private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Regular, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -88,7 +89,7 @@ public sealed class NotificationAreaIcon : IDisposable
 
     private Icon CreateNumberIcon(int number)
     {
-        using var bitmap = new Bitmap(48, 48);
+        using var bitmap = new Bitmap(IconSizeInPixels, IconSizeInPixels);
         using var graphics = Graphics.FromImage(bitmap);
 
         // Set up high quality rendering
@@ -101,8 +102,8 @@ public sealed class NotificationAreaIcon : IDisposable
         // Draw the number
         var text = number.ToString();
         var size = graphics.MeasureString(text, _font);
-        var x = (48 - size.Width) / 2;
-        var y = (48 - size.Height) / 2;
+        var x = (IconSizeInPixels - size.Width) / 2;
+        var y = (IconSizeInPixels - size.Height) / 2;
 
         graphics.DrawString(text, _font, Brushes.White, x, y);
 
