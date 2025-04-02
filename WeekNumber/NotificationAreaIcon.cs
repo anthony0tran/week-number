@@ -58,11 +58,11 @@ public sealed class NotificationAreaIcon : IDisposable
         }
 
         _weekNumber.UpdateNumber();
-
         UpdateIcon();
         UpdateText();
-        _notifyIcon.ShowBalloonTip(2000, $"Week: {_weekNumber.Number}",
-            $"{_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}", ToolTipIcon.Info);
+        
+        var calendarForm = new CalendarForm();
+        calendarForm.ShowAtCursor();
     }
     
     private static void MenuStartup_Click(object? sender, EventArgs e)
