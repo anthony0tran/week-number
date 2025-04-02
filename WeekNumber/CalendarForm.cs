@@ -1,9 +1,9 @@
-﻿namespace WeekNumber;
+﻿using System.Globalization;
+
+namespace WeekNumber;
 
 public class CalendarForm : Form
 {
-    private readonly MonthCalendar _calendar;
-
     public CalendarForm()
     {
         FormBorderStyle = FormBorderStyle.None;
@@ -12,7 +12,13 @@ public class CalendarForm : Form
         BackColor = Color.Magenta;
         TransparencyKey = Color.Magenta;
 
-        _calendar = new MonthCalendar
+        // Configure the current thread's culture for ISO 8601 weeks
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.DateTimeFormat.CalendarWeekRule = CalendarWeekRule.FirstFourDayWeek;
+        culture.DateTimeFormat.FirstDayOfWeek = DayOfWeek.Monday;
+        Thread.CurrentThread.CurrentCulture = culture;
+
+        var calendar = new MonthCalendar
         {
             MaxSelectionCount = 1,
             ShowToday = true,
@@ -21,15 +27,17 @@ public class CalendarForm : Form
             ShowWeekNumbers = true
         };
 
-        Controls.Add(_calendar);
-        var calendarSize = _calendar.PreferredSize;
+        Controls.Add(calendar);
+        var calendarSize = calendar.PreferredSize;
         ClientSize = calendarSize with
         {
             Width = calendarSize.Width + 75,
             Height = calendarSize.Height + 7
         };
 
-        _calendar.Location = Point.Empty;  // Position at top-left of form
+        calendar.Location = Point.Empty;
+        
+        // Close the form when the user clicks outside of it
         Deactivate += (_, _) => Close();
     }
 
@@ -49,6 +57,7 @@ public class CalendarForm : Form
         {
             x = workingArea.Right - Width;
         }
+
         if (y + Height > workingArea.Bottom)
         {
             y = workingArea.Bottom - Height;
