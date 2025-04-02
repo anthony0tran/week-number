@@ -35,20 +35,15 @@ public class CalendarForm : Form
 
     public void ShowAtCursor()
     {
-        var cursorPos = Cursor.Position;
-        var screen = Screen.FromPoint(cursorPos);
-        var workingArea = screen.WorkingArea;
-
-        // Calculate position, keeping the form within screen bounds
-        var x = Math.Min(cursorPos.X, workingArea.Right - Width);
-        var y = Math.Min(cursorPos.Y, workingArea.Bottom - Height);
-
-        // Ensure the form doesn't go off-screen to the left or top
-        x = Math.Max(x, workingArea.Left);
-        y = Math.Max(y, workingArea.Top);
+        StartPosition = FormStartPosition.Manual;
+        var screen = Screen.FromPoint(Cursor.Position);
+        var bounds = screen.Bounds;
+        
+        var x = bounds.Right - Width - 10;
+        var y = bounds.Bottom - Height - 40;
 
         Location = new Point(x, y);
-        Show();
+        Visible = true;
         Activate();
     }
 }
