@@ -31,8 +31,8 @@ public class CalendarForm : Form
         var calendarSize = calendar.PreferredSize;
         ClientSize = calendarSize with
         {
-            Width = calendarSize.Width + 75,
-            Height = calendarSize.Height + 7
+            Width = calendarSize.Width + 100,
+            Height = calendarSize.Height + 10
         };
 
         calendar.Location = Point.Empty;
