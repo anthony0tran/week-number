@@ -21,7 +21,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
-    private const int IconSizeInPixels = 48;
+    private const int IconSizeInPixels = 128;
 
     private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Regular, GraphicsUnit.Pixel);
 
