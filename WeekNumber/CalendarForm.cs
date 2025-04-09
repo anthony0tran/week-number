@@ -2,7 +2,7 @@
 
 namespace WeekNumber;
 
-public class CalendarForm : Form
+public sealed class CalendarForm : Form
 {
     public CalendarForm()
     {
@@ -11,6 +11,8 @@ public class CalendarForm : Form
         TopMost = true;
         BackColor = Color.Magenta;
         TransparencyKey = Color.Magenta;
+        
+        Padding = new Padding(0);
 
         // Configure the current thread's culture for ISO 8601 weeks
         var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
@@ -24,19 +26,16 @@ public class CalendarForm : Form
             ShowToday = true,
             ShowTodayCircle = true,
             CalendarDimensions = new Size(1, 1),
-            ShowWeekNumbers = true
+            ShowWeekNumbers = true,
+            Margin = new Padding(0)
         };
 
         Controls.Add(calendar);
-        var calendarSize = calendar.PreferredSize;
-        ClientSize = calendarSize with
-        {
-            Width = calendarSize.Width + 75,
-            Height = calendarSize.Height + 7
-        };
 
+        AutoSize = true;
+        AutoSizeMode = AutoSizeMode.GrowAndShrink;
         calendar.Location = Point.Empty;
-        
+
         // Close the form when the user clicks outside of it
         Deactivate += (_, _) => Close();
     }
@@ -44,27 +43,27 @@ public class CalendarForm : Form
     public void ShowAtCursor()
     {
         StartPosition = FormStartPosition.Manual;
+
+        // First make the form visible but off-screen to allow layout to complete
+        Location = new Point(-2000, -2000);
+        Visible = true;
+
+        // Now get the screen info
         var cursorPosition = Cursor.Position;
         var screen = Screen.FromPoint(cursorPosition);
         var workingArea = screen.WorkingArea;
 
-        // Calculate initial position at cursor
-        var x = cursorPosition.X;
-        var y = cursorPosition.Y;
+        // Position horizontally centered at cursor position
+        var x = cursorPosition.X - (Width / 2);
+        // Keep y at the bottom of the screen (unchanged)
+        var y = workingArea.Bottom - Height;
 
-        // Ensure the form stays within screen bounds
-        if (x + Width > workingArea.Right)
-        {
-            x = workingArea.Right - Width;
-        }
-
-        if (y + Height > workingArea.Bottom)
-        {
-            y = workingArea.Bottom - Height;
-        }
+        // Ensure it stays within view
+        x = Math.Max(workingArea.Left, x);
+        x = Math.Min(workingArea.Right - Width, x);
+        y = Math.Max(workingArea.Top, y);
 
         Location = new Point(x, y);
-        Visible = true;
         Activate();
     }
 }
