@@ -31,7 +31,7 @@ public class CalendarForm : Form
         var calendarSize = calendar.PreferredSize;
         ClientSize = calendarSize with
         {
-            Width = calendarSize.Width + 100,
+            Width = calendarSize.Width + 150,
             Height = calendarSize.Height + 10
         };
 
@@ -49,20 +49,10 @@ public class CalendarForm : Form
         var workingArea = screen.WorkingArea;
 
         // Calculate initial position at cursor
-        var x = cursorPosition.X;
-        var y = cursorPosition.Y;
+        var x = Math.Max(workingArea.Left, Math.Min(cursorPosition.X, workingArea.Right - Width));
+        var y = Math.Max(workingArea.Top, Math.Min(cursorPosition.Y, workingArea.Bottom - Height));
 
-        // Ensure the form stays within screen bounds
-        if (x + Width > workingArea.Right)
-        {
-            x = workingArea.Right - Width;
-        }
-
-        if (y + Height > workingArea.Bottom)
-        {
-            y = workingArea.Bottom - Height;
-        }
-
+        // Set the location and show the form
         Location = new Point(x, y);
         Visible = true;
         Activate();
