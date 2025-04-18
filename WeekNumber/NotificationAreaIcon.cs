@@ -23,7 +23,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
     private const int IconSizeInPixels = 265;
-    private Brush _currentBrush = Brushes.White;
+    private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
 
     private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Bold, GraphicsUnit.Pixel);
 
@@ -38,13 +38,24 @@ public sealed class NotificationAreaIcon : IDisposable
         };
         var colorPickerMenuItem = new ToolStripMenuItem("Change color", null, (_, _) =>
         {
-            using var colorDialog = new ColorDialog();
+            using ColorDialog colorDialog = new()
+            {
+                AllowFullOpen = true,
+                AnyColor = true,
+                FullOpen = true, // Ensures the dialog opens with the custom colors section visible
+                CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF] // Example custom colors
+            };
+            
             if (colorDialog.ShowDialog() != DialogResult.OK)
             {
                 return;
             }
             
             _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
+            
+            Properties.Settings.Default.SelectedColor = colorDialog.Color;
+            Properties.Settings.Default.Save();
+            
             UpdateIcon();
         });
         
