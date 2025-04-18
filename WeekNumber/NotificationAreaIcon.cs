@@ -22,7 +22,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
-    private const int IconSizeInPixels = 265;
+    private const int IconSizeInPixels = 530;
     private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
     private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
     private const string DefaultFontFamily = "Segoe UI";
@@ -147,10 +147,13 @@ public sealed class NotificationAreaIcon : IDisposable
 
     private Icon CreateNumberIcon(int number)
     {
-        using var bitmap = new Bitmap(IconSizeInPixels, IconSizeInPixels);
-        using var graphics = Graphics.FromImage(bitmap);
+        const int scaleFactor = 4; // Increase resolution by 4x
+        const int highResSize = IconSizeInPixels * scaleFactor;
 
-        // Set up high quality rendering
+        using var highResBitmap = new Bitmap(highResSize, highResSize);
+        using var graphics = Graphics.FromImage(highResBitmap);
+
+        // Set up high-quality rendering
         graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
         graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
@@ -161,14 +164,16 @@ public sealed class NotificationAreaIcon : IDisposable
 
         // Draw the number
         var text = number.ToString();
-        var size = graphics.MeasureString(text, _font);
-        var x = (IconSizeInPixels - size.Width) / 2;
-        var y = (IconSizeInPixels - size.Height) / 2;
+        var font = new Font(DefaultFontFamily, IconSizeInPixels * scaleFactor, _currentFontStyle, GraphicsUnit.Pixel);
+        var size = graphics.MeasureString(text, font);
+        var x = (highResSize - size.Width) / 2;
+        var y = (highResSize - size.Height) / 2;
 
-        graphics.DrawString(text, _font, _currentBrush, x, y);
+        graphics.DrawString(text, font, _currentBrush, x, y);
 
-        // Convert to icon
-        var handle = bitmap.GetHicon();
+        // Scale down to the desired size and convert to icon
+        using var finalBitmap = new Bitmap(highResBitmap, new Size(IconSizeInPixels, IconSizeInPixels));
+        var handle = finalBitmap.GetHicon();
         return Icon.FromHandle(handle);
     }
 
