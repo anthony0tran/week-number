@@ -25,8 +25,9 @@ public sealed class NotificationAreaIcon : IDisposable
     private const int IconSizeInPixels = 265;
     private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
     private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
+    private const string DefaultFontFamily = "Segoe UI";
 
-    private Font _font = new("Segoe UI", IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+    private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -49,17 +50,18 @@ public sealed class NotificationAreaIcon : IDisposable
             {
                 return;
             }
-            
+
             _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
-            
+
             Properties.Settings.Default.SelectedColor = colorDialog.Color;
             Properties.Settings.Default.Save();
-            
+
             UpdateIcon();
         });
-        
+
         var fontStyleMenuItem = new ToolStripMenuItem("Font Style");
-        foreach (var style in Enum.GetValues<FontStyle>())
+        foreach (var style in Enum.GetValues<FontStyle>()
+                     .Where(s => s is not (FontStyle.Regular or FontStyle.Underline)))
         {
             var styleItem = new ToolStripMenuItem(style.ToString())
             {
@@ -82,13 +84,13 @@ public sealed class NotificationAreaIcon : IDisposable
                 Properties.Settings.Default.SelectedFontStyle = (int)_currentFontStyle;
                 Properties.Settings.Default.Save();
 
-                _font = new Font("Segoe UI", IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+                _font = new Font(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
                 UpdateIcon();
             };
 
             fontStyleMenuItem.DropDownItems.Add(styleItem);
         }
-        
+
         _contextMenu.Items.Add(startupMenuItem);
         _contextMenu.Items.Add(colorPickerMenuItem);
         _contextMenu.Items.Add(fontStyleMenuItem);
@@ -116,11 +118,11 @@ public sealed class NotificationAreaIcon : IDisposable
         _weekNumber.UpdateNumber();
         UpdateIcon();
         UpdateText();
-        
+
         var calendarForm = new CalendarForm();
         calendarForm.ShowAtCursor();
     }
-    
+
     private static void MenuStartup_Click(object? sender, EventArgs e)
     {
         var menuItem = (ToolStripMenuItem)sender!;
