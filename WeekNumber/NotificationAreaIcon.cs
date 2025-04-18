@@ -1,5 +1,6 @@
 ﻿using System.Drawing.Text;
 using System.Globalization;
+using WeekNumber.Helpers;
 
 namespace WeekNumber;
 
@@ -21,9 +22,12 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
-    private const int IconSizeInPixels = 128;
+    private const int IconSizeInPixels = 265;
+    private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
+    private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
+    private const string DefaultFontFamily = "Segoe UI";
 
-    private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Regular, GraphicsUnit.Pixel);
+    private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -34,8 +38,62 @@ public sealed class NotificationAreaIcon : IDisposable
         {
             Checked = StartupManager.IsStartupEnabled()
         };
-        
+        var colorPickerMenuItem = new ToolStripMenuItem("Change Color", null, (_, _) =>
+        {
+            using ColorDialog colorDialog = new();
+            colorDialog.AllowFullOpen = true;
+            colorDialog.AnyColor = true;
+            colorDialog.FullOpen = true;
+            colorDialog.CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
+
+            if (colorDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
+
+            Properties.Settings.Default.SelectedColor = colorDialog.Color;
+            Properties.Settings.Default.Save();
+
+            UpdateIcon();
+        });
+
+        var fontStyleMenuItem = new ToolStripMenuItem("Font Style");
+        foreach (var style in Enum.GetValues<FontStyle>()
+                     .Where(s => s is not (FontStyle.Regular or FontStyle.Underline)))
+        {
+            var styleItem = new ToolStripMenuItem(style.ToString())
+            {
+                CheckOnClick = true,
+                Checked = _currentFontStyle.HasFlag(style) // Restore checked state
+            };
+
+            styleItem.CheckedChanged += (_, _) =>
+            {
+                if (styleItem.Checked)
+                {
+                    _currentFontStyle |= style; // Add style
+                }
+                else
+                {
+                    _currentFontStyle &= ~style; // Remove style
+                }
+
+                // Save the updated FontStyle to settings
+                Properties.Settings.Default.SelectedFontStyle = (int)_currentFontStyle;
+                Properties.Settings.Default.Save();
+
+                _font = new Font(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+                UpdateIcon();
+            };
+
+            fontStyleMenuItem.DropDownItems.Add(styleItem);
+        }
+
         _contextMenu.Items.Add(startupMenuItem);
+        _contextMenu.Items.Add(colorPickerMenuItem);
+        _contextMenu.Items.Add(fontStyleMenuItem);
         _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
@@ -60,11 +118,11 @@ public sealed class NotificationAreaIcon : IDisposable
         _weekNumber.UpdateNumber();
         UpdateIcon();
         UpdateText();
-        
+
         var calendarForm = new CalendarForm();
         calendarForm.ShowAtCursor();
     }
-    
+
     private static void MenuStartup_Click(object? sender, EventArgs e)
     {
         var menuItem = (ToolStripMenuItem)sender!;
@@ -95,6 +153,8 @@ public sealed class NotificationAreaIcon : IDisposable
         // Set up high quality rendering
         graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
         graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+        graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
 
         // Clear background to transparent
         graphics.Clear(Color.Transparent);
@@ -105,7 +165,7 @@ public sealed class NotificationAreaIcon : IDisposable
         var x = (IconSizeInPixels - size.Width) / 2;
         var y = (IconSizeInPixels - size.Height) / 2;
 
-        graphics.DrawString(text, _font, Brushes.White, x, y);
+        graphics.DrawString(text, _font, _currentBrush, x, y);
 
         // Convert to icon
         var handle = bitmap.GetHicon();

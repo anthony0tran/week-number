@@ -54,7 +54,7 @@ public sealed class CalendarForm : Form
         var workingArea = screen.WorkingArea;
 
         // Position horizontally centered at cursor position
-        var x = cursorPosition.X - (Width / 2);
+        var x = cursorPosition.X - Width / 2;
         // Keep y at the bottom of the screen (unchanged)
         var y = workingArea.Bottom - Height;
 
