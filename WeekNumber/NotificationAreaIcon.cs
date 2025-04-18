@@ -23,9 +23,10 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
     private const int IconSizeInPixels = 265;
+    private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
     private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
 
-    private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Bold, GraphicsUnit.Pixel);
+    private Font _font = new("Segoe UI", IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -36,16 +37,14 @@ public sealed class NotificationAreaIcon : IDisposable
         {
             Checked = StartupManager.IsStartupEnabled()
         };
-        var colorPickerMenuItem = new ToolStripMenuItem("Change color", null, (_, _) =>
+        var colorPickerMenuItem = new ToolStripMenuItem("Change Color", null, (_, _) =>
         {
-            using ColorDialog colorDialog = new()
-            {
-                AllowFullOpen = true,
-                AnyColor = true,
-                FullOpen = true, // Ensures the dialog opens with the custom colors section visible
-                CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF] // Example custom colors
-            };
-            
+            using ColorDialog colorDialog = new();
+            colorDialog.AllowFullOpen = true;
+            colorDialog.AnyColor = true;
+            colorDialog.FullOpen = true;
+            colorDialog.CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
+
             if (colorDialog.ShowDialog() != DialogResult.OK)
             {
                 return;
@@ -59,8 +58,40 @@ public sealed class NotificationAreaIcon : IDisposable
             UpdateIcon();
         });
         
+        var fontStyleMenuItem = new ToolStripMenuItem("Font Style");
+        foreach (var style in Enum.GetValues<FontStyle>())
+        {
+            var styleItem = new ToolStripMenuItem(style.ToString())
+            {
+                CheckOnClick = true,
+                Checked = _currentFontStyle.HasFlag(style) // Restore checked state
+            };
+
+            styleItem.CheckedChanged += (_, _) =>
+            {
+                if (styleItem.Checked)
+                {
+                    _currentFontStyle |= style; // Add style
+                }
+                else
+                {
+                    _currentFontStyle &= ~style; // Remove style
+                }
+
+                // Save the updated FontStyle to settings
+                Properties.Settings.Default.SelectedFontStyle = (int)_currentFontStyle;
+                Properties.Settings.Default.Save();
+
+                _font = new Font("Segoe UI", IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+                UpdateIcon();
+            };
+
+            fontStyleMenuItem.DropDownItems.Add(styleItem);
+        }
+        
         _contextMenu.Items.Add(startupMenuItem);
         _contextMenu.Items.Add(colorPickerMenuItem);
+        _contextMenu.Items.Add(fontStyleMenuItem);
         _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
