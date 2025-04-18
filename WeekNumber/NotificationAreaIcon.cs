@@ -1,5 +1,6 @@
 ﻿using System.Drawing.Text;
 using System.Globalization;
+using WeekNumber.Helpers;
 
 namespace WeekNumber;
 
@@ -21,9 +22,10 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
-    private const int IconSizeInPixels = 128;
+    private const int IconSizeInPixels = 265;
+    private Brush _currentBrush = Brushes.White;
 
-    private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Regular, GraphicsUnit.Pixel);
+    private readonly Font _font = new("Segoe UI", IconSizeInPixels, FontStyle.Bold, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -34,8 +36,20 @@ public sealed class NotificationAreaIcon : IDisposable
         {
             Checked = StartupManager.IsStartupEnabled()
         };
+        var colorPickerMenuItem = new ToolStripMenuItem("Change color", null, (_, _) =>
+        {
+            using var colorDialog = new ColorDialog();
+            if (colorDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+            
+            _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
+            UpdateIcon();
+        });
         
         _contextMenu.Items.Add(startupMenuItem);
+        _contextMenu.Items.Add(colorPickerMenuItem);
         _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
@@ -95,6 +109,8 @@ public sealed class NotificationAreaIcon : IDisposable
         // Set up high quality rendering
         graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
         graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+        graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
 
         // Clear background to transparent
         graphics.Clear(Color.Transparent);
@@ -105,7 +121,7 @@ public sealed class NotificationAreaIcon : IDisposable
         var x = (IconSizeInPixels - size.Width) / 2;
         var y = (IconSizeInPixels - size.Height) / 2;
 
-        graphics.DrawString(text, _font, Brushes.White, x, y);
+        graphics.DrawString(text, _font, _currentBrush, x, y);
 
         // Convert to icon
         var handle = bitmap.GetHicon();
