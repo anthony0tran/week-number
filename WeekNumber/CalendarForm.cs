@@ -25,7 +25,7 @@ public sealed class CalendarForm : Form
             MaxSelectionCount = 1,
             ShowToday = true,
             ShowTodayCircle = true,
-            CalendarDimensions = new Size(1, 1),
+            CalendarDimensions = new Size(2, 1),
             ShowWeekNumbers = true,
             Margin = new Padding(0)
         };
