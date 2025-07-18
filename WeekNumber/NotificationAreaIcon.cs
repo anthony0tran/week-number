@@ -22,10 +22,10 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
     private bool _disposed;
-    private const int IconSizeInPixels = 265;
+    private const int IconSizeInPixels = 32;
     private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
     private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
-    private const string DefaultFontFamily = "Segoe UI";
+    private const string DefaultFontFamily = "Arial";
 
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
