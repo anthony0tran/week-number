@@ -1,5 +1,6 @@
 ﻿using System.Drawing.Text;
 using System.Globalization;
+using Microsoft.Win32;
 using WeekNumber.Helpers;
 
 namespace WeekNumber;
@@ -106,6 +107,8 @@ public sealed class NotificationAreaIcon : IDisposable
         };
 
         _notifyIcon.MouseClick += NotifyIcon_LeftMouseClick;
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+        Application.ApplicationExit += OnApplicationExit;
     }
 
     private void NotifyIcon_LeftMouseClick(object? sender, MouseEventArgs e)
@@ -128,6 +131,25 @@ public sealed class NotificationAreaIcon : IDisposable
         var menuItem = (ToolStripMenuItem)sender!;
         menuItem.Checked = !menuItem.Checked;
         StartupManager.SetStartup(menuItem.Checked);
+    }
+
+    private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode != PowerModes.Resume)
+        {
+            return;
+        }
+
+        _weekNumber.UpdateNumber();
+        UpdateIcon();
+        UpdateText();
+    }
+    
+    private void OnApplicationExit(object? sender, EventArgs e)
+    {
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+        Application.ApplicationExit -= OnApplicationExit;
+        _notifyIcon.MouseClick -= NotifyIcon_LeftMouseClick;
     }
 
     private static void MenuExit_Click(object? sender, EventArgs e)
