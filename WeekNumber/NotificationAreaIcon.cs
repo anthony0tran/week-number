@@ -106,6 +106,8 @@ public sealed class NotificationAreaIcon : IDisposable
             ContextMenuStrip = _contextMenu
         };
 
+        StartupManager.UpdateRegistryKey();
+
         _notifyIcon.MouseClick += NotifyIcon_LeftMouseClick;
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
         Application.ApplicationExit += OnApplicationExit;
