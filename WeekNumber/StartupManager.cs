@@ -24,6 +24,32 @@ public static class StartupManager
         key.SetValue(AppName, exePath);
     }
 
+    public static void UpdateRegistryKey()
+    {
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, true);
+
+        if (key == null)
+        {
+            return;
+        }
+
+        var registryExePath = key.GetValue(AppName) as string;
+
+        if (string.IsNullOrEmpty(registryExePath))
+        {
+            return;
+        }
+
+        var exePath = Application.ExecutablePath;
+
+        if (string.Equals(registryExePath, exePath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        key.SetValue(AppName, exePath);
+    }
+
     public static bool IsStartupEnabled()
     {
         using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey);
