@@ -1,39 +1,31 @@
-﻿using System.Drawing.Text;
+﻿using System.Drawing;
 using System.Globalization;
 using Microsoft.Win32;
 using WeekNumber.Helpers;
 
 namespace WeekNumber;
 
-/// <summary>
-/// Manages a singleton instance of a Windows notification area icon.
-/// Provides functionality to display the current ISO week number
-/// and update the icon during runtime.
-/// </summary>
-/// <remarks>
-/// This class follows the singleton pattern to ensure only one notification
-/// area icon exists throughout the application's lifetime. It implements
-/// IDisposable for proper cleanup of system resources.
-/// </remarks>
 public sealed class NotificationAreaIcon : IDisposable
 {
-    // ReSharper disable once InconsistentNaming
-    private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon());
+    private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon(new IconFactory()));
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
+    private readonly IIconFactory _iconFactory;
     private bool _disposed;
     private const int IconSizeInPixels = 32;
     private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
     private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
     private const string DefaultFontFamily = "Arial";
-
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
-    private NotificationAreaIcon()
+    // For testability, allow injecting IIconFactory
+    internal NotificationAreaIcon(IIconFactory iconFactory)
     {
+        _iconFactory = iconFactory;
+
         var exitMenuItem = new ToolStripMenuItem("Exit", null, MenuExit_Click);
         var startupMenuItem = new ToolStripMenuItem("Run at Startup", null, MenuStartup_Click)
         {
@@ -48,15 +40,11 @@ public sealed class NotificationAreaIcon : IDisposable
             colorDialog.CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
 
             if (colorDialog.ShowDialog() != DialogResult.OK)
-            {
                 return;
-            }
 
             _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
-
             Properties.Settings.Default.SelectedColor = colorDialog.Color;
             Properties.Settings.Default.Save();
-
             UpdateIcon();
         });
 
@@ -67,21 +55,16 @@ public sealed class NotificationAreaIcon : IDisposable
             var styleItem = new ToolStripMenuItem(style.ToString())
             {
                 CheckOnClick = true,
-                Checked = _currentFontStyle.HasFlag(style) // Restore checked state
+                Checked = _currentFontStyle.HasFlag(style)
             };
 
             styleItem.CheckedChanged += (_, _) =>
             {
                 if (styleItem.Checked)
-                {
-                    _currentFontStyle |= style; // Add style
-                }
+                    _currentFontStyle |= style;
                 else
-                {
-                    _currentFontStyle &= ~style; // Remove style
-                }
+                    _currentFontStyle &= ~style;
 
-                // Save the updated FontStyle to settings
                 Properties.Settings.Default.SelectedFontStyle = (int)_currentFontStyle;
                 Properties.Settings.Default.Save();
 
@@ -100,7 +83,7 @@ public sealed class NotificationAreaIcon : IDisposable
 
         _notifyIcon = new NotifyIcon
         {
-            Icon = CreateNumberIcon(_weekNumber.Number),
+            Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels),
             Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}",
             Visible = true,
             ContextMenuStrip = _contextMenu
@@ -116,9 +99,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private void NotifyIcon_LeftMouseClick(object? sender, MouseEventArgs e)
     {
         if (e.Button != MouseButtons.Left)
-        {
             return;
-        }
 
         _weekNumber.UpdateNumber();
         UpdateIcon();
@@ -138,9 +119,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode != PowerModes.Resume)
-        {
             return;
-        }
 
         _weekNumber.UpdateNumber();
         UpdateIcon();
@@ -159,65 +138,22 @@ public sealed class NotificationAreaIcon : IDisposable
         Application.Exit();
     }
 
-    private void UpdateIcon()
+    internal void UpdateIcon()
     {
-        _notifyIcon.Icon = CreateNumberIcon(_weekNumber.Number);
+        _notifyIcon.Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels);
     }
 
-    private void UpdateText()
+    internal void UpdateText()
     {
         _notifyIcon.Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
     }
 
-    private Icon CreateNumberIcon(int number)
-    {
-        using var bitmap = new Bitmap(IconSizeInPixels, IconSizeInPixels);
-        using var graphics = Graphics.FromImage(bitmap);
-
-        // Set up high quality rendering
-        graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-        graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-
-        // Clear background to transparent
-        graphics.Clear(Color.Transparent);
-
-        // Draw the number
-        var text = number.ToString();
-
-        const int margin = -32;
-
-        using var adjustedFont =
-            new Font(_font.FontFamily, IconSizeInPixels - 1, _currentFontStyle, GraphicsUnit.Pixel);
-        var size = graphics.MeasureString(text, adjustedFont);
-
-        var x = (IconSizeInPixels - size.Width) / 2;
-        var y = (IconSizeInPixels - size.Height) / 2;
-
-        if (x < margin)
-        {
-            x = margin;
-        }
-
-        if (y < margin)
-        {
-            y = margin;
-        }
-
-        graphics.DrawString(text, adjustedFont, _currentBrush, x, y);
-
-        // Convert to icon
-        var handle = bitmap.GetHicon();
-        return Icon.FromHandle(handle);
-    }
-
+    internal NotifyIcon NotifyIcon => _notifyIcon;
+    
     public void Dispose()
     {
         if (_disposed)
-        {
             return;
-        }
 
         _notifyIcon.Dispose();
         _disposed = true;
