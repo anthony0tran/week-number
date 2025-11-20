@@ -17,6 +17,7 @@ jobs:
     env:
       Solution_Name: WeekNumber.sln
       Project_Path: WeekNumber/WeekNumber.csproj
+      Test_Project_Path: WeekNumber.Tests/WeekNumber.Tests.csproj
 
     steps:
     - name: Checkout
@@ -34,6 +35,9 @@ jobs:
 
     - name: Build
       run: dotnet build ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --no-restore
+
+    - name: Test
+      run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
