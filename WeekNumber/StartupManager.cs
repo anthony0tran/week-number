@@ -1,13 +1,18 @@
 ﻿namespace WeekNumber;
 
-public class StartupManager(IRegistryProvider registryProvider, IExecutablePathProvider exePathProvider)
+public static class StartupManager
 {
     private const string AppName = "WeekNumber_By_Anthony_Tran";
-    private const string RegistryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+    private const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
-    public void SetStartup(bool enable)
+    public static void SetStartup(bool enable)
     {
-        using var key = registryProvider.OpenSubKey(RegistryKeyPath, true);
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, true);
+
+        if (key == null)
+        {
+            return;
+        }
 
         if (!enable)
         {
@@ -15,26 +20,39 @@ public class StartupManager(IRegistryProvider registryProvider, IExecutablePathP
             return;
         }
 
-        var exePath = exePathProvider.GetExecutablePath();
+        var exePath = Application.ExecutablePath;
         key.SetValue(AppName, exePath);
     }
 
-    public void UpdateRegistryKey()
+    public static void UpdateRegistryKey()
     {
-        using var key = registryProvider.OpenSubKey(RegistryKeyPath, true);
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, true);
+
+        if (key == null)
+        {
+            return;
+        }
 
         var registryExePath = key.GetValue(AppName) as string;
-        if (string.IsNullOrEmpty(registryExePath)) return;
 
-        var exePath = exePathProvider.GetExecutablePath();
-        if (string.Equals(registryExePath, exePath, StringComparison.OrdinalIgnoreCase)) return;
+        if (string.IsNullOrEmpty(registryExePath))
+        {
+            return;
+        }
+
+        var exePath = Application.ExecutablePath;
+
+        if (string.Equals(registryExePath, exePath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
 
         key.SetValue(AppName, exePath);
     }
 
-    public bool IsStartupEnabled()
+    public static bool IsStartupEnabled()
     {
-        using var key = registryProvider.OpenSubKey(RegistryKeyPath);
-        return key.GetValue(AppName) != null;
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey);
+        return key?.GetValue(AppName) != null;
     }
 }

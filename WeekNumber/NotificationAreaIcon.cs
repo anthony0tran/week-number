@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Drawing;
+using System.Globalization;
 using Microsoft.Win32;
 using WeekNumber.Helpers;
 
@@ -6,11 +7,11 @@ namespace WeekNumber;
 
 public sealed class NotificationAreaIcon : IDisposable
 {
-    private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon(new IconFactory(), new StartupManager(new RegistryProvider(), new ExecutablePathProvider())));
+    private static readonly Lazy<NotificationAreaIcon> _instance = new(() => new NotificationAreaIcon(new IconFactory()));
+    private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu = new();
     private readonly WeekNumber _weekNumber = new();
     private readonly IIconFactory _iconFactory;
-    private readonly StartupManager _startupManager;
     private bool _disposed;
     private const int IconSizeInPixels = 32;
     private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
@@ -19,16 +20,16 @@ public sealed class NotificationAreaIcon : IDisposable
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
-    
-    internal NotificationAreaIcon(IIconFactory iconFactory, StartupManager startupManager)
+
+    // For testability, allow injecting IIconFactory
+    internal NotificationAreaIcon(IIconFactory iconFactory)
     {
         _iconFactory = iconFactory;
-        _startupManager = startupManager;
 
         var exitMenuItem = new ToolStripMenuItem("Exit", null, MenuExit_Click);
         var startupMenuItem = new ToolStripMenuItem("Run at Startup", null, MenuStartup_Click)
         {
-            Checked = _startupManager.IsStartupEnabled()
+            Checked = StartupManager.IsStartupEnabled()
         };
         var colorPickerMenuItem = new ToolStripMenuItem("Change Color", null, (_, _) =>
         {
@@ -80,7 +81,7 @@ public sealed class NotificationAreaIcon : IDisposable
         _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
-        NotifyIcon = new NotifyIcon
+        _notifyIcon = new NotifyIcon
         {
             Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels),
             Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}",
@@ -88,9 +89,9 @@ public sealed class NotificationAreaIcon : IDisposable
             ContextMenuStrip = _contextMenu
         };
 
-        _startupManager.UpdateRegistryKey();
+        StartupManager.UpdateRegistryKey();
 
-        NotifyIcon.MouseClick += NotifyIcon_LeftMouseClick;
+        _notifyIcon.MouseClick += NotifyIcon_LeftMouseClick;
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
         Application.ApplicationExit += OnApplicationExit;
     }
@@ -108,11 +109,11 @@ public sealed class NotificationAreaIcon : IDisposable
         calendarForm.ShowAtCursor();
     }
 
-    private void MenuStartup_Click(object? sender, EventArgs e)
+    private static void MenuStartup_Click(object? sender, EventArgs e)
     {
         var menuItem = (ToolStripMenuItem)sender!;
         menuItem.Checked = !menuItem.Checked;
-        _startupManager.SetStartup(menuItem.Checked);
+        StartupManager.SetStartup(menuItem.Checked);
     }
 
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
@@ -129,7 +130,7 @@ public sealed class NotificationAreaIcon : IDisposable
     {
         SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         Application.ApplicationExit -= OnApplicationExit;
-        NotifyIcon.MouseClick -= NotifyIcon_LeftMouseClick;
+        _notifyIcon.MouseClick -= NotifyIcon_LeftMouseClick;
     }
 
     private static void MenuExit_Click(object? sender, EventArgs e)
@@ -139,22 +140,22 @@ public sealed class NotificationAreaIcon : IDisposable
 
     internal void UpdateIcon()
     {
-        NotifyIcon.Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels);
+        _notifyIcon.Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels);
     }
 
     internal void UpdateText()
     {
-        NotifyIcon.Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
+        _notifyIcon.Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
     }
 
-    internal NotifyIcon NotifyIcon { get; }
-
+    internal NotifyIcon NotifyIcon => _notifyIcon;
+    
     public void Dispose()
     {
         if (_disposed)
             return;
 
-        NotifyIcon.Dispose();
+        _notifyIcon.Dispose();
         _disposed = true;
     }
 }
