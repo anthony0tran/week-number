@@ -146,7 +146,7 @@ public sealed class NotificationAreaIcon : IDisposable
         UpdateIcon();
         UpdateText();
     }
-    
+
     private void OnApplicationExit(object? sender, EventArgs e)
     {
         SystemEvents.PowerModeChanged -= OnPowerModeChanged;
@@ -185,11 +185,27 @@ public sealed class NotificationAreaIcon : IDisposable
 
         // Draw the number
         var text = number.ToString();
-        var size = graphics.MeasureString(text, _font);
+
+        const int margin = -32;
+
+        using var adjustedFont =
+            new Font(_font.FontFamily, IconSizeInPixels - 1, _currentFontStyle, GraphicsUnit.Pixel);
+        var size = graphics.MeasureString(text, adjustedFont);
+
         var x = (IconSizeInPixels - size.Width) / 2;
         var y = (IconSizeInPixels - size.Height) / 2;
 
-        graphics.DrawString(text, _font, _currentBrush, x, y);
+        if (x < margin)
+        {
+            x = margin;
+        }
+
+        if (y < margin)
+        {
+            y = margin;
+        }
+
+        graphics.DrawString(text, adjustedFont, _currentBrush, x, y);
 
         // Convert to icon
         var handle = bitmap.GetHicon();
