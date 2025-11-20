@@ -43,4 +43,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: WeekNumber-${{ matrix.configuration }}
-        path: WeekNumber/bin/${{ matrix.configuration }}/net9.0-windows/
+        path: WeekNumber/bin/${{ matrix.configuration }}/net10.0-windows/
