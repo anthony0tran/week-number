@@ -1,6 +1,6 @@
 # Week Number
 
-Week Number is a high-performance Windows utility that leverages [NotifyIcon](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon?view=windowsdesktop-9.0) to display the current ISO week number directly in your system tray. 
+Week Number is a lightweight Windows utility that leverages [NotifyIcon](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon?view=windowsdesktop-9.0) to display the current ISO week number directly in your system tray. 
 ## Features
 
 - \*\*Taskbar Notification\*\*: Shows the current ISO week number as an icon in the Windows notification area.
