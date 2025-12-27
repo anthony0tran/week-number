@@ -2,8 +2,6 @@
 using System.Globalization;
 using Microsoft.Win32;
 using WeekNumber.Helpers;
-using System.Reflection;
-using System.IO;
 
 namespace WeekNumber;
 
@@ -120,131 +118,7 @@ public sealed class NotificationAreaIcon : IDisposable
         StartupManager.SetStartup(menuItem.Checked);
     }
 
-    private static string GetAppVersion()
-    {
-        var fileVer = Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<AssemblyFileVersionAttribute>()
-            ?.Version;
-
-        if (!string.IsNullOrWhiteSpace(fileVer))
-        {
-            var parts = fileVer.Split('.');
-            if (parts.Length >= 3)
-                return string.Join('.', parts[0], parts[1], parts[2]);
-            return fileVer;
-        }
-
-        var infoVer = Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion;
-
-        if (!string.IsNullOrWhiteSpace(infoVer))
-        {
-            var plusIndex = infoVer.IndexOf('+');
-            var ver = plusIndex >= 0 ? infoVer.Substring(0, plusIndex) : infoVer;
-            var parts = ver.Split('.');
-            if (parts.Length >= 3)
-                return string.Join('.', parts[0], parts[1], parts[2]);
-            return ver;
-        }
-
-        var prodVerParts = Application.ProductVersion.Split('.');
-        if (prodVerParts.Length >= 3)
-            return string.Join('.', prodVerParts[0], prodVerParts[1], prodVerParts[2]);
-        return Application.ProductVersion;
-    }
-
-private static Form? _aboutForm;
-
-private static void MenuAbout_Click(object? sender, EventArgs e)
-{
-    // If an instance exists and is still alive, just bring it to front and return
-    if (_aboutForm is { IsDisposed: false } && _aboutForm.Visible)
-    {
-        if (_aboutForm.WindowState == FormWindowState.Minimized)
-            _aboutForm.WindowState = FormWindowState.Normal;
-
-        _aboutForm.Activate();
-        _aboutForm.BringToFront();
-        return;
-    }
-
-    // Otherwise create a new one
-    string version = GetAppVersion();
-    string iconPath = Path.Combine(AppContext.BaseDirectory, "Resources", "AppIcon.ico");
-
-    var about = new Form
-    {
-        Text = $"WeekNumber {version}",
-        Size = new Size(300, 220),
-        FormBorderStyle = FormBorderStyle.FixedDialog,
-        StartPosition = FormStartPosition.CenterScreen,
-        MaximizeBox = false,
-        MinimizeBox = false,
-        ShowIcon = false,
-        ShowInTaskbar = false
-    };
-
-    // Track this instance
-    _aboutForm = about;
-
-    // When it closes, clear the reference
-    about.FormClosed += (_, __) =>
-    {
-        about.Dispose();
-        if (ReferenceEquals(_aboutForm, about))
-            _aboutForm = null;
-    };
-
-    Image bodyImage = File.Exists(iconPath)
-        ? new Icon(iconPath, new Size(128, 128)).ToBitmap()
-        : SystemIcons.Application.ToBitmap();
-
-    var picture = new PictureBox
-    {
-        Size = new Size(128, 128),
-        SizeMode = PictureBoxSizeMode.Zoom,
-        Image = bodyImage,
-        Margin = new Padding(12, 12, 16, 12)
-    };
-
-    float baseSize = SystemFonts.MessageBoxFont.Size;
-    var link = new LinkLabel
-    {
-        Text = "Github",
-        AutoSize = false,
-        Size = new Size(240, 128),
-        Tag = "https://github.com/anthony0tran/week-number",
-        Font = new Font(SystemFonts.MessageBoxFont.FontFamily, baseSize + 4f, FontStyle.Bold),
-        Margin = new Padding(0, 12, 12, 12),
-        LinkBehavior = LinkBehavior.HoverUnderline,
-        TextAlign = ContentAlignment.MiddleLeft
-    };
-    link.LinkClicked += (s, args) =>
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = (string)link.Tag!,
-            UseShellExecute = true
-        });
-
-    var flow = new FlowLayoutPanel
-    {
-        Dock = DockStyle.Fill,
-        FlowDirection = FlowDirection.LeftToRight,
-        WrapContents = false,
-        Padding = new Padding(12),
-        AutoSize = false
-    };
-
-    flow.Controls.Add(picture);
-    flow.Controls.Add(link);
-    about.Controls.Add(flow);
-
-    // If you want modal, use ShowDialog(owner). If modeless, use Show(owner)
-    // Modal:
-    about.ShowDialog(); // or pass an owner: about.ShowDialog(Form.ActiveForm);
-}
-
+    
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode != PowerModes.Resume)
@@ -287,4 +161,10 @@ private static void MenuAbout_Click(object? sender, EventArgs e)
         _notifyIcon.Dispose();
         _disposed = true;
     }
+    
+    public void MenuAbout_Click(object sender, EventArgs e)
+    {
+        AboutWindow.ShowAboutWindow(sender, e);
+    }
 }
+
