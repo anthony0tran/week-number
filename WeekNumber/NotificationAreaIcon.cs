@@ -120,25 +120,39 @@ public sealed class NotificationAreaIcon : IDisposable
         StartupManager.SetStartup(menuItem.Checked);
     }
 
- private static string GetAppVersion()
+    private static string GetAppVersion()
     {
-        var infoVer = Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion;
-
-        if (!string.IsNullOrWhiteSpace(infoVer))
-            return infoVer;
-        
         var fileVer = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyFileVersionAttribute>()
             ?.Version;
 
         if (!string.IsNullOrWhiteSpace(fileVer))
+        {
+            var parts = fileVer.Split('.');
+            if (parts.Length >= 3)
+                return string.Join('.', parts[0], parts[1], parts[2]);
             return fileVer;
+        }
 
+        var infoVer = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+
+        if (!string.IsNullOrWhiteSpace(infoVer))
+        {
+            var plusIndex = infoVer.IndexOf('+');
+            var ver = plusIndex >= 0 ? infoVer.Substring(0, plusIndex) : infoVer;
+            var parts = ver.Split('.');
+            if (parts.Length >= 3)
+                return string.Join('.', parts[0], parts[1], parts[2]);
+            return ver;
+        }
+
+        var prodVerParts = Application.ProductVersion.Split('.');
+        if (prodVerParts.Length >= 3)
+            return string.Join('.', prodVerParts[0], prodVerParts[1], prodVerParts[2]);
         return Application.ProductVersion;
     }
- 
 
 private static Form? _aboutForm;
 
