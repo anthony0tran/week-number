@@ -1,6 +1,6 @@
-﻿namespace WeekNumber;
+﻿namespace WeekNumber.Helpers;
 
-public static class StartupManager
+public static class StartupHelper
 {
     private const string AppName = "WeekNumber_By_Anthony_Tran";
     private const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";

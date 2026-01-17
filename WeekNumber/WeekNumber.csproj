@@ -10,6 +10,7 @@
         <SelfContained>true</SelfContained>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
     </PropertyGroup>
     <ItemGroup>
       <None Update="Resources\AppIcon.ico">

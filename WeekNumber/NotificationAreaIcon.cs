@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Globalization;
 using Microsoft.Win32;
+using WeekNumber.Forms;
 using WeekNumber.Helpers;
 
 namespace WeekNumber;
@@ -29,7 +30,7 @@ public sealed class NotificationAreaIcon : IDisposable
         var aboutMenuItem = new ToolStripMenuItem("About", null, MenuAbout_Click);
         var startupMenuItem = new ToolStripMenuItem("Run at Startup", null, MenuStartup_Click)
         {
-            Checked = StartupManager.IsStartupEnabled()
+            Checked = StartupHelper.IsStartupEnabled()
         };
         var colorPickerMenuItem = new ToolStripMenuItem("Change Color", null, (_, _) =>
         {
@@ -91,7 +92,7 @@ public sealed class NotificationAreaIcon : IDisposable
             ContextMenuStrip = _contextMenu
         };
 
-        StartupManager.UpdateRegistryKey();
+        StartupHelper.UpdateRegistryKey();
 
         _notifyIcon.MouseClick += NotifyIcon_LeftMouseClick;
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
@@ -115,7 +116,7 @@ public sealed class NotificationAreaIcon : IDisposable
     {
         var menuItem = (ToolStripMenuItem)sender!;
         menuItem.Checked = !menuItem.Checked;
-        StartupManager.SetStartup(menuItem.Checked);
+        StartupHelper.SetStartup(menuItem.Checked);
     }
 
     
@@ -164,7 +165,7 @@ public sealed class NotificationAreaIcon : IDisposable
     
     public void MenuAbout_Click(object sender, EventArgs e)
     {
-        AboutWindow.ShowAboutWindow(sender, e);
+        AboutForm.ShowAboutWindow(sender, e);
     }
 }
 

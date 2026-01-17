@@ -3,7 +3,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace WeekNumber
+namespace WeekNumber.Forms
 {
     internal static class GraphicsUtil
     {
