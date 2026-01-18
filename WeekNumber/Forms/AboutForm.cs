@@ -62,15 +62,15 @@ public class AboutForm : Form
         };
     }
 
-    private static Image LoadIconImage(string iconPath)
+    private static Bitmap LoadIconImage(string iconPath)
     {
         using var icon = new Icon(iconPath, new Size(IconSize, IconSize));
         return icon.ToBitmap();
     }
 
-    private LinkLabel CreateGitHubLinkLabel()
+    private static LinkLabel CreateGitHubLinkLabel()
     {
-        float baseSize = (SystemFonts.MessageBoxFont ?? SystemFonts.DefaultFont).Size;
+        var baseSize = (SystemFonts.MessageBoxFont ?? SystemFonts.DefaultFont).Size;
         var link = new LinkLabel
         {
             Text = "Check out our GitHub page!",

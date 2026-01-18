@@ -36,29 +36,29 @@ internal sealed class CalendarControl : Control
     private static readonly Color WeekHighlightBorderColor = Color.FromArgb(0xAD, 0xCA, 0xFF);
 
     // Title vertical position ratio inside header band (0..1).
-    private float _headerTitleCenterRatio = 0.28f;
+    private readonly float _headerTitleCenterRatio = 0.28f;
 
     // Today circle visuals.
     private const int TodayCircleDiameter = 26;
     private const float TodayCircleStroke = 2.0f;
 
     // Public configuration surface.
-    [DefaultValue(typeof(Size), "2, 1")] public Size CalendarDimensions { get; set; } = new Size(2, 1);
+    [DefaultValue(typeof(Size), "2, 1")] public Size CalendarDimensions { get; init; } = new(2, 1);
 
-    [DefaultValue(true)] public bool ShowWeekNumbers { get; set; } = true;
+    [DefaultValue(true)] public bool ShowWeekNumbers { get; init; } = true;
 
-    [DefaultValue(true)] public bool ShowToday { get; set; } = true;
+    [DefaultValue(true)] public bool ShowToday { get; init; } = true;
 
-    [DefaultValue(true)] public bool ShowTodayCircle { get; set; } = true;
+    [DefaultValue(true)] public bool ShowTodayCircle { get; init; } = true;
 
     [DefaultValue(typeof(Color), "Black")]
-    public Color HeaderForeground { get; set; } = Color.FromArgb(0x1F, 0x1F, 0x1F);
+    public Color HeaderForeground { get; init; } = Color.FromArgb(0x1F, 0x1F, 0x1F);
 
     [DefaultValue(typeof(Color), "Gray")]
-    public Color SecondaryForeground { get; set; } = Color.FromArgb(0x6B, 0x6B, 0x6B);
+    public Color SecondaryForeground { get; init; } = Color.FromArgb(0x6B, 0x6B, 0x6B);
 
     [DefaultValue(typeof(Color), "0, 100, 210")]
-    public Color Accent { get; set; } = Color.FromArgb(0x1E, 0x6B, 0xD6);
+    public Color Accent { get; init; } = Color.FromArgb(0x1E, 0x6B, 0xD6);
 
     // Current display month (first of month).
     [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
