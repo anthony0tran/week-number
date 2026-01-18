@@ -163,9 +163,10 @@ public sealed class NotificationAreaIcon : IDisposable
         _disposed = true;
     }
     
-    public void MenuAbout_Click(object sender, EventArgs e)
+    public void MenuAbout_Click(object? sender, EventArgs e)
     {
-        AboutForm.ShowAboutWindow(sender, e);
+        // Show AboutForm as a dialog
+        using var about = new AboutForm();
+        about.ShowDialog();
     }
 }
-

@@ -2,124 +2,79 @@ using WeekNumber.Helpers;
 
 namespace WeekNumber.Forms;
 
-public class AboutForm
+public class AboutForm : Form
 {
-    /// <summary>
-    /// Opens a window that displays the application version and a GitHub link.
-    /// </summary>
-        
-
-    // Holds the current About form instance so repeated clicks reuse the window.
-    public static Form? _aboutForm;
-
-    /// <summary>
-    /// Shows the About window. Reuses existing instance if already open.
-    /// </summary>
-    public static void ShowAboutWindow(object sender, EventArgs e)
+    protected override void OnLoad(EventArgs e)
     {
-        // If an instance exists and is visible, bring it to front and return.
-        if (_aboutForm is { IsDisposed: false } && _aboutForm.Visible)
-        {
-            if (_aboutForm.WindowState == FormWindowState.Minimized)
-                _aboutForm.WindowState = FormWindowState.Normal;
-
-            _aboutForm.Activate();
-            _aboutForm.BringToFront();
-            return;
-        }
-
-        // Build form metadata.
+        base.OnLoad(e);
         var version = VersionHelper.GetAppVersion();
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Resources", "AppIcon.ico");
 
-        // Create the About dialog.
-        var about = new Form
+        Text = $"WeekNumber {version}";
+        Size = new Size(360, 220);
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        StartPosition = FormStartPosition.CenterScreen;
+        MaximizeBox = false;
+        MinimizeBox = false;
+        ShowIcon = false;
+        ShowInTaskbar = false;
+
+        Image bodyImage;
+        if (File.Exists(iconPath))
         {
-            Text = $"WeekNumber {version}",
-            Size = new Size(360, 220),                        // Base size; layout will scale in the second column
-            FormBorderStyle = FormBorderStyle.FixedDialog,
-            StartPosition = FormStartPosition.CenterScreen,
-            MaximizeBox = false,
-            MinimizeBox = false,
-            ShowIcon = false,
-            ShowInTaskbar = false
-        };
-
-        // Track this instance.
-        _aboutForm = about;
-
-        // Cleanup reference when the form closes.
-        about.FormClosed += (_, __) =>
+            using var icon = new Icon(iconPath, new Size(128, 128));
+            bodyImage = icon.ToBitmap();
+        }
+        else
         {
-            about.Dispose();
-            if (ReferenceEquals(_aboutForm, about))
-                _aboutForm = null;
-        };
+            bodyImage = SystemIcons.Application.ToBitmap();
+        }
 
-        // Resolve icon (prefer app icon, fallback to system icon).
-        Image bodyImage = File.Exists(iconPath)
-            ? new Icon(iconPath, new Size(128, 128)).ToBitmap()
-            : SystemIcons.Application.ToBitmap();
-
-        // Left column: fixed-size image.
         var picture = new PictureBox
         {
             Size = new Size(128, 128),
             SizeMode = PictureBoxSizeMode.Zoom,
             Image = bodyImage,
-            Margin = new Padding(12, 12, 16, 12)              // Extra right margin for spacing to text column
+            Margin = new Padding(12, 12, 16, 12)
         };
 
-        // Right column: link text; allow it to grow/shrink naturally.
-        float baseSize = SystemFonts.MessageBoxFont.Size;
+        float baseSize = (SystemFonts.MessageBoxFont ?? SystemFonts.DefaultFont).Size;
         var link = new LinkLabel
         {
             Text = "Check out our GitHub page!",
-            AutoSize = true,                                  // Natural size within table cell
+            AutoSize = true,
             Tag = "https://github.com/anthony0tran/week-number",
-            Font = new Font(SystemFonts.MessageBoxFont.FontFamily, baseSize + 4f, FontStyle.Bold),
+            Font = new Font((SystemFonts.MessageBoxFont ?? SystemFonts.DefaultFont).FontFamily, baseSize + 4f, FontStyle.Bold),
             Margin = new Padding(0, 12, 12, 12),
             LinkBehavior = LinkBehavior.HoverUnderline,
             TextAlign = ContentAlignment.MiddleLeft,
-            AutoEllipsis = true                               // If space tightens, show ellipsis instead of overflow
+            AutoEllipsis = true
         };
 
-        // Open the URL using the default browser.
-        link.LinkClicked += (s, args) =>
+        link.LinkClicked += (_, _) =>
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = (string)link.Tag!,
                 UseShellExecute = true
             });
 
-        // Layout: two-column table
-        // Column 0: fixed width for image (128px)
-        // Column 1: remaining width for link (fills horizontally)
         var table = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(12),                        // Overall content padding inside the form
+            Padding = new Padding(12),
             ColumnCount = 2,
             RowCount = 1
         };
-        table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 128F));   // Fixed image column
-        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));    // Flexible text column
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 128F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-        // Place controls into table.
         table.Controls.Add(picture, 0, 0);
         table.Controls.Add(link, 1, 0);
 
-        // Make the link fill its cell horizontally so it wraps/ellipsizes properly.
         link.Dock = DockStyle.Fill;
+        MinimumSize = new Size(360, MinimumSize.Height);
 
-        // Prevent the window from being resized too small to display content reasonably.
-        about.MinimumSize = new Size(360, about.MinimumSize.Height);
-
-        // Apply layout to form.
-        about.Controls.Add(table);
-
-        // Show modal.
-        about.ShowDialog();
+        Controls.Add(table);
     }
 }
