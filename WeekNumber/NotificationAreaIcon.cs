@@ -20,13 +20,13 @@ public sealed class NotificationAreaIcon : IDisposable
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
 
     public static NotificationAreaIcon Instance => _instance.Value;
-
-    // For testability, allow injecting IIconFactory
+    
     internal NotificationAreaIcon(IIconFactory iconFactory)
     {
         _iconFactory = iconFactory;
 
         var exitMenuItem = new ToolStripMenuItem("Exit", null, MenuExit_Click);
+        var aboutMenuItem = new ToolStripMenuItem("About", null, MenuAbout_Click);
         var startupMenuItem = new ToolStripMenuItem("Run at Startup", null, MenuStartup_Click)
         {
             Checked = StartupManager.IsStartupEnabled()
@@ -79,6 +79,8 @@ public sealed class NotificationAreaIcon : IDisposable
         _contextMenu.Items.Add(colorPickerMenuItem);
         _contextMenu.Items.Add(fontStyleMenuItem);
         _contextMenu.Items.Add(new ToolStripSeparator());
+        _contextMenu.Items.Add(aboutMenuItem);
+        _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
         _notifyIcon = new NotifyIcon
@@ -116,6 +118,7 @@ public sealed class NotificationAreaIcon : IDisposable
         StartupManager.SetStartup(menuItem.Checked);
     }
 
+    
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode != PowerModes.Resume)
@@ -158,4 +161,10 @@ public sealed class NotificationAreaIcon : IDisposable
         _notifyIcon.Dispose();
         _disposed = true;
     }
+    
+    public void MenuAbout_Click(object sender, EventArgs e)
+    {
+        AboutWindow.ShowAboutWindow(sender, e);
+    }
 }
+
