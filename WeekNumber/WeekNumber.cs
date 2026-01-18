@@ -12,7 +12,7 @@ public record WeekNumber
         LastUpdated = DateTime.Now;
         Number = CalculateWeekNumber(LastUpdated);
     }
-    
+
     /// <summary>
     /// Gets the timestamp of when the week number was last updated.
     /// </summary>
@@ -26,7 +26,7 @@ public record WeekNumber
     /// and the first week of the year contains January 4th.
     /// </remarks>
     public int Number { get; private set; }
-    
+
     /// <summary>
     /// Updates the week number and timestamp to current date and time.
     /// </summary>
@@ -44,10 +44,8 @@ public record WeekNumber
     private static int CalculateWeekNumber(DateTime date)
     {
         if (date.Year is < 1 or > 9999)
-        {
             throw new ArgumentOutOfRangeException(nameof(date), "Year must be between 1 and 9999.");
-        }
-        
+
         return ISOWeek.GetWeekOfYear(date);
     }
 }

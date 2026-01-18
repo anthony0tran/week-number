@@ -9,9 +9,7 @@ internal static class Program
     private static void Main()
     {
         ApplicationConfiguration.Initialize();
-        
         using var weekNumberIcon = NotificationAreaIcon.Instance;
-        
         Application.Run();
     }
 }

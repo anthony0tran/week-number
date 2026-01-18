@@ -8,45 +8,23 @@ public static class StartupHelper
     public static void SetStartup(bool enable)
     {
         using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, true);
-
-        if (key == null)
-        {
-            return;
-        }
-
+        if (key == null) return;
         if (!enable)
         {
             key.DeleteValue(AppName, false);
             return;
         }
-
-        var exePath = Application.ExecutablePath;
-        key.SetValue(AppName, exePath);
+        key.SetValue(AppName, Application.ExecutablePath);
     }
 
     public static void UpdateRegistryKey()
     {
         using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, true);
-
-        if (key == null)
-        {
-            return;
-        }
-
+        if (key == null) return;
         var registryExePath = key.GetValue(AppName) as string;
-
-        if (string.IsNullOrEmpty(registryExePath))
-        {
-            return;
-        }
-
+        if (string.IsNullOrEmpty(registryExePath)) return;
         var exePath = Application.ExecutablePath;
-
-        if (string.Equals(registryExePath, exePath, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
+        if (string.Equals(registryExePath, exePath, StringComparison.OrdinalIgnoreCase)) return;
         key.SetValue(AppName, exePath);
     }
 
