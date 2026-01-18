@@ -73,7 +73,7 @@ public class AboutForm : Form
         table.Controls.Add(link, 1, 0);
 
         link.Dock = DockStyle.Fill;
-        MinimumSize = new Size(360, MinimumSize.Height);
+        MinimumSize = MinimumSize with { Width = 360 };
 
         Controls.Add(table);
     }

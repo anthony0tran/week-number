@@ -1,5 +1,3 @@
-using System.Windows.Forms;
-
 namespace WeekNumber.Forms;
 
 internal sealed class DoubleBufferedPanel : Panel

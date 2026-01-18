@@ -43,17 +43,13 @@ internal sealed class CalendarControl : Control
     private const float TodayCircleStroke = 2.0f;
 
     // Public configuration surface.
-    [DefaultValue(typeof(Size), "2, 1")]
-    public Size CalendarDimensions { get; set; } = new Size(2, 1);
+    [DefaultValue(typeof(Size), "2, 1")] public Size CalendarDimensions { get; set; } = new Size(2, 1);
 
-    [DefaultValue(true)]
-    public bool ShowWeekNumbers { get; set; } = true;
+    [DefaultValue(true)] public bool ShowWeekNumbers { get; set; } = true;
 
-    [DefaultValue(true)]
-    public bool ShowToday { get; set; } = true;
+    [DefaultValue(true)] public bool ShowToday { get; set; } = true;
 
-    [DefaultValue(true)]
-    public bool ShowTodayCircle { get; set; } = true;
+    [DefaultValue(true)] public bool ShowTodayCircle { get; set; } = true;
 
     [DefaultValue(typeof(Color), "Black")]
     public Color HeaderForeground { get; set; } = Color.FromArgb(0x1F, 0x1F, 0x1F);
@@ -148,7 +144,8 @@ internal sealed class CalendarControl : Control
 
         int gridHeightAll = down * monthHeightFixed + (down - 1) * _monthGap;
         int totalWidth = _padLeft + _padRight + across * monthWidth + (across - 1) * _monthGap;
-        int totalHeight = _padTop + gridHeightAll + _gridBottomGap + 1 + _footerSeparatorGap + _footerHeight + _padBottom;
+        int totalHeight = _padTop + gridHeightAll + _gridBottomGap + 1 + _footerSeparatorGap + _footerHeight +
+                          _padBottom;
 
         return new Size(totalWidth, totalHeight);
     }
@@ -242,7 +239,7 @@ internal sealed class CalendarControl : Control
 
         var dtf = _culture.DateTimeFormat;
         var todayTextRect = new Rectangle(_todayBoxRect.Right + 8, footerRect.Y,
-                                          footerRect.Width - (_todayBoxRect.Width + 8), footerRect.Height);
+            footerRect.Width - (_todayBoxRect.Width + 8), footerRect.Height);
 
         TextRenderer.DrawText(g,
             $"Today: {DateTime.Today.ToString("dd-MM-yyyy", _culture)}",
@@ -262,17 +259,17 @@ internal sealed class CalendarControl : Control
 
         string title = $"{dtf.GetMonthName(month.Month)} {month.Year}";
         var titleSize = TextRenderer.MeasureText(g, title, headerFont, new Size(int.MaxValue, int.MaxValue),
-                                                 TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
         int titleCenterY = bounds.Y + (int)Math.Round(_headerHeight * _headerTitleCenterRatio);
         int titleTop = titleCenterY - titleSize.Height / 2;
 
         var headerTitleRect = new Rectangle(bounds.X, titleTop, bounds.Width, titleSize.Height);
         TextRenderer.DrawText(g, title, headerFont, headerTitleRect, HeaderForeground,
-                              TextFormatFlags.HorizontalCenter |
-                              TextFormatFlags.Top |
-                              TextFormatFlags.SingleLine |
-                              TextFormatFlags.NoPadding);
+            TextFormatFlags.HorizontalCenter |
+            TextFormatFlags.Top |
+            TextFormatFlags.SingleLine |
+            TextFormatFlags.NoPadding);
 
         int weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
         var namesRect = new Rectangle(bounds.X, bounds.Y + _headerHeight, bounds.Width, _weekRowHeight);
@@ -283,10 +280,10 @@ internal sealed class CalendarControl : Control
         {
             var wkRect = new Rectangle(colX, namesRect.Y, weekColWidth, namesRect.Height);
             TextRenderer.DrawText(g, "CW", Font, wkRect, SecondaryForeground,
-                                  TextFormatFlags.HorizontalCenter |
-                                  TextFormatFlags.VerticalCenter |
-                                  TextFormatFlags.SingleLine |
-                                  TextFormatFlags.NoPadding);
+                TextFormatFlags.HorizontalCenter |
+                TextFormatFlags.VerticalCenter |
+                TextFormatFlags.SingleLine |
+                TextFormatFlags.NoPadding);
             colX += weekColWidth;
         }
 
@@ -295,10 +292,10 @@ internal sealed class CalendarControl : Control
             string name = dtf.AbbreviatedDayNames[((int)dtf.FirstDayOfWeek + d) % 7];
             var rect = new Rectangle(colX, namesRect.Y, _cellWidth, namesRect.Height);
             TextRenderer.DrawText(g, name, Font, rect, HeaderBlueColor,
-                                  TextFormatFlags.HorizontalCenter |
-                                  TextFormatFlags.VerticalCenter |
-                                  TextFormatFlags.SingleLine |
-                                  TextFormatFlags.NoPadding);
+                TextFormatFlags.HorizontalCenter |
+                TextFormatFlags.VerticalCenter |
+                TextFormatFlags.SingleLine |
+                TextFormatFlags.NoPadding);
             colX += _cellWidth;
         }
 
@@ -328,10 +325,10 @@ internal sealed class CalendarControl : Control
                 int weekNumber = ISOWeek.GetWeekOfYear(rowWeekStart);
                 var wkRect = new Rectangle(weekColX, gridY, weekColWidth, _cellHeight);
                 TextRenderer.DrawText(g, weekNumber.ToString(), Font, wkRect, WeekNumberColor,
-                                      TextFormatFlags.HorizontalCenter |
-                                      TextFormatFlags.VerticalCenter |
-                                      TextFormatFlags.SingleLine |
-                                      TextFormatFlags.NoPadding);
+                    TextFormatFlags.HorizontalCenter |
+                    TextFormatFlags.VerticalCenter |
+                    TextFormatFlags.SingleLine |
+                    TextFormatFlags.NoPadding);
             }
 
             int cx = gridXStart;
@@ -346,14 +343,14 @@ internal sealed class CalendarControl : Control
                 var numberColor = inMonth ? HeaderForeground : TrailingDayColor;
 
                 TextRenderer.DrawText(g, day.Day.ToString(), Font, rect, numberColor,
-                                      TextFormatFlags.HorizontalCenter |
-                                      TextFormatFlags.VerticalCenter |
-                                      TextFormatFlags.SingleLine |
-                                      TextFormatFlags.NoPadding);
+                    TextFormatFlags.HorizontalCenter |
+                    TextFormatFlags.VerticalCenter |
+                    TextFormatFlags.SingleLine |
+                    TextFormatFlags.NoPadding);
 
                 if (ShowToday && ShowTodayCircle && isToday)
                 {
-                    int dia = TodayCircleDiameter;
+                    var dia = TodayCircleDiameter;
                     var circle = new Rectangle(
                         rect.X + (rect.Width - dia) / 2,
                         rect.Y + (rect.Height - dia) / 2,
@@ -374,14 +371,14 @@ internal sealed class CalendarControl : Control
     private void DrawChevron(Graphics g, Rectangle rect, bool left)
     {
         using var p = new Pen(SecondaryForeground, 1.2f);
-        int cx = rect.X + rect.Width / 2;
-        int cy = rect.Y + rect.Height / 2;
-        int size = Math.Max(4, rect.Height / 3);
+        var cx = rect.X + rect.Width / 2;
+        var cy = rect.Y + rect.Height / 2;
+        var size = Math.Max(4, rect.Height / 3);
 
-        if (left)
-            g.DrawLines(p, new[] { new Point(cx + 2, cy - size), new Point(cx - 3, cy), new Point(cx + 2, cy + size) });
-        else
-            g.DrawLines(p, new[] { new Point(cx - 2, cy - size), new Point(cx + 3, cy), new Point(cx - 2, cy + size) });
+        g.DrawLines(p,
+            left
+                ? new[] { new Point(cx + 2, cy - size), new Point(cx - 3, cy), new Point(cx + 2, cy + size) }
+                : new[] { new Point(cx - 2, cy - size), new Point(cx + 3, cy), new Point(cx - 2, cy + size) });
     }
 
     // Measures text to update minimum cell/row widths/heights.
@@ -389,19 +386,20 @@ internal sealed class CalendarControl : Control
     {
         var dtf = _culture.DateTimeFormat;
 
-        string longestDay = "Wed";
+        var longestDay = "Wed";
         foreach (var s in dtf.AbbreviatedDayNames)
-            if (s.Length > longestDay.Length) longestDay = s;
+            if (s.Length > longestDay.Length)
+                longestDay = s;
 
         var daySize = TextRenderer.MeasureText(g, longestDay, Font, new Size(int.MaxValue, int.MaxValue),
-                                               TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
         var weekSize = TextRenderer.MeasureText(g, "53", Font, new Size(int.MaxValue, int.MaxValue),
-                                                TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
         var titleProxy = TextRenderer.MeasureText(g, "September 2025", new Font(Font, FontStyle.Regular),
-                                                  new Size(int.MaxValue, int.MaxValue),
-                                                  TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+            new Size(int.MaxValue, int.MaxValue),
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
         _cellWidth = Math.Max(_cellWidth, daySize.Width + 8);
         _weekColumnWidth = Math.Max(_weekColumnWidth, weekSize.Width + 10);
@@ -437,36 +435,36 @@ internal sealed class CalendarControl : Control
             return;
         }
 
-        int across = CalendarDimensions.Width;
-        int down = CalendarDimensions.Height;
+        var across = CalendarDimensions.Width;
+        var down = CalendarDimensions.Height;
 
-        int weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
-        int monthWidth = weekColWidth + (_cellWidth * 7);
-        int monthHeightFixed = _headerHeight + _weekRowHeight + (_cellHeight * FixedWeeksPerMonth);
+        var weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
+        var monthWidth = weekColWidth + (_cellWidth * 7);
+        var monthHeightFixed = _headerHeight + _weekRowHeight + (_cellHeight * FixedWeeksPerMonth);
 
         var monthCursor = DisplayMonth;
-        int yCursor = _padTop;
+        var yCursor = _padTop;
 
-        for (int r = 0; r < down; r++)
+        for (var r = 0; r < down; r++)
         {
-            int xCursor = _padLeft;
+            var xCursor = _padLeft;
 
-            for (int c = 0; c < across; c++)
+            for (var c = 0; c < across; c++)
             {
                 var bounds = new Rectangle(xCursor, yCursor, monthWidth, monthHeightFixed);
 
                 if (bounds.Contains(e.Location))
                 {
-                    int gridTop = bounds.Y + _headerHeight + _weekRowHeight;
-                    int yRel = e.Y - gridTop;
+                    var gridTop = bounds.Y + _headerHeight + _weekRowHeight;
+                    var yRel = e.Y - gridTop;
 
                     if (yRel >= 0 && yRel < _cellHeight * FixedWeeksPerMonth)
                     {
-                        int row = yRel / _cellHeight;
+                        var row = yRel / _cellHeight;
 
                         var dtf = _culture.DateTimeFormat;
                         DateTime firstOfMonth = new DateTime(monthCursor.Year, monthCursor.Month, 1);
-                        int offset = (((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek) + 7) % 7;
+                        var offset = ((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek + 7) % 7;
                         DateTime gridStart = firstOfMonth.AddDays(-offset);
 
                         HighlightIsoWeek(gridStart.AddDays(row * 7));
@@ -485,8 +483,10 @@ internal sealed class CalendarControl : Control
     // Returns the Monday of the ISO week for a given date.
     private static DateTime StartOfIsoWeek(DateTime date)
     {
-        int dow = (int)date.DayOfWeek;
+        var dow = (int)date.DayOfWeek;
         if (dow == 0) dow = 7;
         return date.AddDays(1 - dow).Date;
     }
 }
+
+

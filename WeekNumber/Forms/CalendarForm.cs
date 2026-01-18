@@ -1,9 +1,5 @@
-﻿using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
 namespace WeekNumber.Forms;
 
