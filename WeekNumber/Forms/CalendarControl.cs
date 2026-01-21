@@ -1,3 +1,4 @@
+
 using System.ComponentModel;
 using System.Globalization;
 using System.Drawing.Drawing2D;
@@ -70,8 +71,9 @@ internal sealed class CalendarControl : Control
     private Rectangle _todayBoxRect;
     private Rectangle _footerRect;
 
-    // Week highlight anchor (ISO week start).
+    // Week highlight anchor (ISO week start) and owning month (first of month).
     private DateTime? _highlightWeekStart;
+    private DateTime? _highlightWeekMonth;
 
     // Culture used for names/formatting.
     private readonly CultureInfo _culture;
@@ -100,10 +102,21 @@ internal sealed class CalendarControl : Control
         };
     }
 
-    // Updates the highlighted ISO week and repaints.
+    // Updates the highlighted ISO week and repaints (programmatic use).
+    // Owning month is required to avoid duplicating highlight across adjacent months.
+    public void HighlightIsoWeek(DateTime anyDate, DateTime owningMonthFirstOfMonth)
+    {
+        _highlightWeekStart = StartOfIsoWeek(anyDate);
+        _highlightWeekMonth = new DateTime(owningMonthFirstOfMonth.Year, owningMonthFirstOfMonth.Month, 1);
+        Invalidate();
+    }
+
+    // Backwards-compatible overload: defaults ownership to the calendar month currently showing 'anyDate'.
+    // If the control shows multiple months including 'anyDate', the month matching 'anyDate' gets ownership.
     public void HighlightIsoWeek(DateTime anyDate)
     {
         _highlightWeekStart = StartOfIsoWeek(anyDate);
+        _highlightWeekMonth = new DateTime(anyDate.Year, anyDate.Month, 1);
         Invalidate();
     }
 
@@ -256,7 +269,8 @@ internal sealed class CalendarControl : Control
     private void DrawMonth(Graphics g, Rectangle bounds, DateTime month, Font headerFont)
     {
         var dtf = _culture.DateTimeFormat;
-
+        List<Rectangle> todayCircles = new();
+        
         string title = $"{dtf.GetMonthName(month.Month)} {month.Year}";
         var titleSize = TextRenderer.MeasureText(g, title, headerFont, new Size(int.MaxValue, int.MaxValue),
             TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
@@ -311,13 +325,31 @@ internal sealed class CalendarControl : Control
         {
             DateTime rowWeekStart = StartOfIsoWeek(gridStart.AddDays(row * 7));
 
-            if (_highlightWeekStart.HasValue && rowWeekStart == _highlightWeekStart.Value)
+            // Only highlight if both the week start matches AND this month owns the highlight.
+            if (_highlightWeekStart.HasValue &&
+                _highlightWeekMonth.HasValue &&
+                rowWeekStart == _highlightWeekStart.Value &&
+                month.Date == _highlightWeekMonth.Value)
             {
-                var bar = new Rectangle(weekColX, gridY, weekColWidth + 7 * _cellWidth, _cellHeight);
+                
+                int left = bounds.X + 2;
+                int right = bounds.Right - 2;
+
+
+                var bar = Rectangle.FromLTRB(
+                    left,
+                    gridY,
+                    right,
+                    gridY + _cellHeight);
+
+
                 using var fill = new SolidBrush(WeekHighlightFillColor);
                 using var pen = new Pen(WeekHighlightBorderColor, 1f);
+
                 g.FillRectangle(fill, bar);
                 g.DrawRectangle(pen, bar.X, bar.Y, bar.Width - 1, bar.Height - 1);
+
+
             }
 
             if (ShowWeekNumbers)
@@ -348,25 +380,33 @@ internal sealed class CalendarControl : Control
                     TextFormatFlags.SingleLine |
                     TextFormatFlags.NoPadding);
 
-                if (ShowToday && ShowTodayCircle && isToday)
-                {
-                    var dia = TodayCircleDiameter;
-                    var circle = new Rectangle(
-                        rect.X + (rect.Width - dia) / 2,
-                        rect.Y + (rect.Height - dia) / 2,
-                        dia, dia);
+                // Draw "today" circle only if today exists AND belongs to this month.
 
-                    using var pen = new Pen(TodayCircleColor, TodayCircleStroke);
-                    g.DrawEllipse(pen, circle);
+                if (ShowToday && ShowTodayCircle && isToday && inMonth)
+                {
+                    todayCircles.Add(new Rectangle(
+                        rect.X + (rect.Width - TodayCircleDiameter) / 2,
+                        rect.Y + (rect.Height - TodayCircleDiameter) / 2,
+                        TodayCircleDiameter,
+                        TodayCircleDiameter));
                 }
+
 
                 cx += _cellWidth;
             }
 
             gridY += _cellHeight;
         }
+        
+        using var todayPen = new Pen(TodayCircleColor, TodayCircleStroke);
+        foreach (var circle in todayCircles)
+        {
+            g.DrawEllipse(todayPen, circle);
+        }
+
     }
 
+    
     // Paints a chevron glyph inside a rectangle (left/right).
     private void DrawChevron(Graphics g, Rectangle rect, bool left)
     {
@@ -430,7 +470,8 @@ internal sealed class CalendarControl : Control
         {
             var today = DateTime.Today;
             DisplayMonth = new DateTime(today.Year, today.Month, 1);
-            HighlightIsoWeek(today);
+            // Highlight today with ownership set to today's month to avoid duplicate highlight.
+            HighlightIsoWeek(today, new DateTime(today.Year, today.Month, 1));
             Invalidate();
             return;
         }
@@ -467,7 +508,11 @@ internal sealed class CalendarControl : Control
                         var offset = ((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek + 7) % 7;
                         DateTime gridStart = firstOfMonth.AddDays(-offset);
 
-                        HighlightIsoWeek(gridStart.AddDays(row * 7));
+                        // Set highlight week and explicitly assign ownership to the clicked month.
+                        var weekAnyDate = gridStart.AddDays(row * 7);
+                        _highlightWeekStart = StartOfIsoWeek(weekAnyDate);
+                        _highlightWeekMonth = firstOfMonth; // owning month = clicked month
+                        Invalidate();
                         return;
                     }
                 }
@@ -488,5 +533,3 @@ internal sealed class CalendarControl : Control
         return date.AddDays(1 - dow).Date;
     }
 }
-
-
