@@ -41,7 +41,7 @@ internal sealed class CalendarControl : Control
 
     // Today circle visuals.
     private const int TodayCircleDiameter = 26;
-    private const float TodayCircleStroke = 2.0f;
+    private const float TodayCircleStroke = 1.8f;
 
     // Public configuration surface.
     [DefaultValue(typeof(Size), "2, 1")] public Size CalendarDimensions { get; init; } = new(2, 1);
