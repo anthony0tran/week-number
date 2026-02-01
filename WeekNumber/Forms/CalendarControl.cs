@@ -40,7 +40,7 @@ internal sealed class CalendarControl : Control
 
     // Today circle visuals.
     private const int TodayCircleDiameter = 26;
-    private const float TodayCircleStroke = 2.0f;
+    private const float TodayCircleStroke = 1.8f;
 
     // Public configuration surface.
     [DefaultValue(typeof(Size), "2, 1")] public Size CalendarDimensions { get; init; } = new(2, 1);
@@ -62,7 +62,7 @@ internal sealed class CalendarControl : Control
 
     // Current display month (first of month).
     [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public DateTime DisplayMonth { get; private set; } = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private DateTime DisplayMonth { get; set; } = new(DateTime.Today.Year, DateTime.Today.Month, 1);
 
     // Cached hit rectangles.
     private Rectangle _prevChevronRect;
@@ -70,8 +70,9 @@ internal sealed class CalendarControl : Control
     private Rectangle _todayBoxRect;
     private Rectangle _footerRect;
 
-    // Week highlight anchor (ISO week start).
+    // Week highlight anchor (ISO week start) and owning month (first of month).
     private DateTime? _highlightWeekStart;
+    private DateTime? _highlightWeekMonth;
 
     // Culture used for names/formatting.
     private readonly CultureInfo _culture;
@@ -100,10 +101,21 @@ internal sealed class CalendarControl : Control
         };
     }
 
-    // Updates the highlighted ISO week and repaints.
+    // Updates the highlighted ISO week and repaints (programmatic use).
+    // Owning month is required to avoid duplicating highlight across adjacent months.
+    private void HighlightIsoWeek(DateTime anyDate, DateTime owningMonthFirstOfMonth)
+    {
+        _highlightWeekStart = StartOfIsoWeek(anyDate);
+        _highlightWeekMonth = new DateTime(owningMonthFirstOfMonth.Year, owningMonthFirstOfMonth.Month, 1);
+        Invalidate();
+    }
+
+    // Backwards-compatible overload: defaults ownership to the calendar month currently showing 'anyDate'.
+    // If the control shows multiple months including 'anyDate', the month matching 'anyDate' gets ownership.
     public void HighlightIsoWeek(DateTime anyDate)
     {
         _highlightWeekStart = StartOfIsoWeek(anyDate);
+        _highlightWeekMonth = new DateTime(anyDate.Year, anyDate.Month, 1);
         Invalidate();
     }
 
@@ -135,16 +147,16 @@ internal sealed class CalendarControl : Control
         using var g = CreateGraphics();
         ComputeMetrics(g);
 
-        int across = CalendarDimensions.Width;
-        int down = CalendarDimensions.Height;
+        var across = CalendarDimensions.Width;
+        var down = CalendarDimensions.Height;
 
-        int weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
-        int monthWidth = weekColWidth + (_cellWidth * 7);
-        int monthHeightFixed = _headerHeight + _weekRowHeight + (_cellHeight * FixedWeeksPerMonth);
+        var weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
+        var monthWidth = weekColWidth + _cellWidth * 7;
+        var monthHeightFixed = _headerHeight + _weekRowHeight + _cellHeight * FixedWeeksPerMonth;
 
-        int gridHeightAll = down * monthHeightFixed + (down - 1) * _monthGap;
-        int totalWidth = _padLeft + _padRight + across * monthWidth + (across - 1) * _monthGap;
-        int totalHeight = _padTop + gridHeightAll + _gridBottomGap + 1 + _footerSeparatorGap + _footerHeight +
+        var gridHeightAll = down * monthHeightFixed + (down - 1) * _monthGap;
+        var totalWidth = _padLeft + _padRight + across * monthWidth + (across - 1) * _monthGap;
+        var totalHeight = _padTop + gridHeightAll + _gridBottomGap + 1 + _footerSeparatorGap + _footerHeight +
                           _padBottom;
 
         return new Size(totalWidth, totalHeight);
@@ -164,12 +176,12 @@ internal sealed class CalendarControl : Control
 
         using var headerFont = new Font(Font.FontFamily, Font.Size + 0.5f, FontStyle.Regular);
 
-        int headerTop = _padTop;
-        int titleCenterY = headerTop + (int)Math.Round(_headerHeight * _headerTitleCenterRatio);
+        var headerTop = _padTop;
+        var titleCenterY = headerTop + (int)Math.Round(_headerHeight * _headerTitleCenterRatio);
 
         // Chevron rectangles vertically centered to month title center.
-        Size chevronSize = new Size(_headerSidePadding - 8, _headerHeight - 10);
-        int chevronHalfH = chevronSize.Height / 2;
+        var chevronSize = new Size(_headerSidePadding - 8, _headerHeight - 10);
+        var chevronHalfH = chevronSize.Height / 2;
 
         _prevChevronRect = new Rectangle(
             _padLeft + 1,
@@ -186,21 +198,21 @@ internal sealed class CalendarControl : Control
         DrawChevron(g, _prevChevronRect, left: true);
         DrawChevron(g, _nextChevronRect, left: false);
 
-        int across = CalendarDimensions.Width;
-        int down = CalendarDimensions.Height;
+        var across = CalendarDimensions.Width;
+        var down = CalendarDimensions.Height;
 
-        int weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
-        int monthWidth = weekColWidth + (_cellWidth * 7);
-        int monthHeightFixed = _headerHeight + _weekRowHeight + (_cellHeight * FixedWeeksPerMonth);
+        var weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
+        var monthWidth = weekColWidth + _cellWidth * 7;
+        var monthHeightFixed = _headerHeight + _weekRowHeight + _cellHeight * FixedWeeksPerMonth;
 
         var monthCursor = DisplayMonth;
-        int yCursor = _padTop;
+        var yCursor = _padTop;
 
-        for (int r = 0; r < down; r++)
+        for (var r = 0; r < down; r++)
         {
-            int xCursor = _padLeft;
+            var xCursor = _padLeft;
 
-            for (int c = 0; c < across; c++)
+            for (var c = 0; c < across; c++)
             {
                 var bounds = new Rectangle(xCursor, yCursor, monthWidth, monthHeightFixed);
                 DrawMonth(g, bounds, monthCursor, headerFont);
@@ -208,7 +220,7 @@ internal sealed class CalendarControl : Control
 
                 if (c < across - 1)
                 {
-                    int dividerX = bounds.Right + _monthGap / 2;
+                    var dividerX = bounds.Right + _monthGap / 2;
                     using var p = new Pen(DividerColor, 1f);
                     g.DrawLine(p, dividerX, bounds.Top + _headerHeight, dividerX, bounds.Bottom);
                 }
@@ -219,7 +231,7 @@ internal sealed class CalendarControl : Control
             yCursor += monthHeightFixed + (r < down - 1 ? _monthGap : 0);
         }
 
-        int sepY = _padTop + (down * monthHeightFixed) + ((down - 1) * _monthGap) + _gridBottomGap;
+        var sepY = _padTop + down * monthHeightFixed + (down - 1) * _monthGap + _gridBottomGap;
         using (var p = new Pen(DividerColor, 1f))
             g.DrawLine(p, _padLeft, sepY, Width - _padRight, sepY);
 
@@ -230,7 +242,7 @@ internal sealed class CalendarControl : Control
             _footerHeight);
 
         const int boxSize = 16;
-        int boxY = footerRect.Y + (footerRect.Height - boxSize) / 2;
+        var boxY = footerRect.Y + (footerRect.Height - boxSize) / 2;
         _todayBoxRect = new Rectangle(footerRect.X, boxY, boxSize, boxSize);
         _footerRect = footerRect;
 
@@ -256,29 +268,30 @@ internal sealed class CalendarControl : Control
     private void DrawMonth(Graphics g, Rectangle bounds, DateTime month, Font headerFont)
     {
         var dtf = _culture.DateTimeFormat;
-
-        string title = $"{dtf.GetMonthName(month.Month)} {month.Year}";
+        List<Rectangle> todayCircles = [];
+        
+        var title = $"{dtf.GetMonthName(month.Month)} {month.Year}";
         var titleSize = TextRenderer.MeasureText(g, title, headerFont, new Size(int.MaxValue, int.MaxValue),
             TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-        int titleCenterY = bounds.Y + (int)Math.Round(_headerHeight * _headerTitleCenterRatio);
-        int titleTop = titleCenterY - titleSize.Height / 2;
+        var titleCenterY = bounds.Y + (int)Math.Round(_headerHeight * _headerTitleCenterRatio);
+        var titleTop = titleCenterY - titleSize.Height / 2;
 
-        var headerTitleRect = new Rectangle(bounds.X, titleTop, bounds.Width, titleSize.Height);
+        var headerTitleRect = bounds with { Y = titleTop, Height = titleSize.Height };
         TextRenderer.DrawText(g, title, headerFont, headerTitleRect, HeaderForeground,
             TextFormatFlags.HorizontalCenter |
             TextFormatFlags.Top |
             TextFormatFlags.SingleLine |
             TextFormatFlags.NoPadding);
 
-        int weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
-        var namesRect = new Rectangle(bounds.X, bounds.Y + _headerHeight, bounds.Width, _weekRowHeight);
+        var weekColWidth = ShowWeekNumbers ? _weekColumnWidth : 0;
+        var namesRect = bounds with { Y = bounds.Y + _headerHeight, Height = _weekRowHeight };
 
-        int colX = bounds.X;
+        var colX = bounds.X;
 
         if (ShowWeekNumbers)
         {
-            var wkRect = new Rectangle(colX, namesRect.Y, weekColWidth, namesRect.Height);
+            var wkRect = namesRect with { X = colX, Width = weekColWidth };
             TextRenderer.DrawText(g, "CW", Font, wkRect, SecondaryForeground,
                 TextFormatFlags.HorizontalCenter |
                 TextFormatFlags.VerticalCenter |
@@ -287,10 +300,10 @@ internal sealed class CalendarControl : Control
             colX += weekColWidth;
         }
 
-        for (int d = 0; d < 7; d++)
+        for (var d = 0; d < 7; d++)
         {
-            string name = dtf.AbbreviatedDayNames[((int)dtf.FirstDayOfWeek + d) % 7];
-            var rect = new Rectangle(colX, namesRect.Y, _cellWidth, namesRect.Height);
+            var name = dtf.AbbreviatedDayNames[((int)dtf.FirstDayOfWeek + d) % 7];
+            var rect = namesRect with { X = colX, Width = _cellWidth };
             TextRenderer.DrawText(g, name, Font, rect, HeaderBlueColor,
                 TextFormatFlags.HorizontalCenter |
                 TextFormatFlags.VerticalCenter |
@@ -299,30 +312,46 @@ internal sealed class CalendarControl : Control
             colX += _cellWidth;
         }
 
-        DateTime firstOfMonth = new DateTime(month.Year, month.Month, 1);
-        int offset = (((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek) + 7) % 7;
-        DateTime gridStart = firstOfMonth.AddDays(-offset);
+        var firstOfMonth = new DateTime(month.Year, month.Month, 1);
+        var offset = ((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek + 7) % 7;
+        var gridStart = firstOfMonth.AddDays(-offset);
 
-        int weekColX = bounds.X;
-        int gridXStart = bounds.X + weekColWidth;
-        int gridY = bounds.Y + _headerHeight + _weekRowHeight;
+        var weekColX = bounds.X;
+        var gridXStart = bounds.X + weekColWidth;
+        var gridY = bounds.Y + _headerHeight + _weekRowHeight;
 
-        for (int row = 0; row < FixedWeeksPerMonth; row++)
+        for (var row = 0; row < FixedWeeksPerMonth; row++)
         {
             DateTime rowWeekStart = StartOfIsoWeek(gridStart.AddDays(row * 7));
 
-            if (_highlightWeekStart.HasValue && rowWeekStart == _highlightWeekStart.Value)
+            // Only highlight if both the week start matches AND this month owns the highlight.
+            if (_highlightWeekStart.HasValue &&
+                _highlightWeekMonth.HasValue &&
+                rowWeekStart == _highlightWeekStart.Value &&
+                month.Date == _highlightWeekMonth.Value)
             {
-                var bar = new Rectangle(weekColX, gridY, weekColWidth + 7 * _cellWidth, _cellHeight);
+                
+                var left = bounds.X + 2;
+                var right = bounds.Right - 2;
+
+
+                var bar = Rectangle.FromLTRB(
+                    left,
+                    gridY,
+                    right,
+                    gridY + _cellHeight);
+
+
                 using var fill = new SolidBrush(WeekHighlightFillColor);
                 using var pen = new Pen(WeekHighlightBorderColor, 1f);
+
                 g.FillRectangle(fill, bar);
                 g.DrawRectangle(pen, bar.X, bar.Y, bar.Width - 1, bar.Height - 1);
             }
 
             if (ShowWeekNumbers)
             {
-                int weekNumber = ISOWeek.GetWeekOfYear(rowWeekStart);
+                var weekNumber = ISOWeek.GetWeekOfYear(rowWeekStart);
                 var wkRect = new Rectangle(weekColX, gridY, weekColWidth, _cellHeight);
                 TextRenderer.DrawText(g, weekNumber.ToString(), Font, wkRect, WeekNumberColor,
                     TextFormatFlags.HorizontalCenter |
@@ -348,25 +377,33 @@ internal sealed class CalendarControl : Control
                     TextFormatFlags.SingleLine |
                     TextFormatFlags.NoPadding);
 
-                if (ShowToday && ShowTodayCircle && isToday)
-                {
-                    var dia = TodayCircleDiameter;
-                    var circle = new Rectangle(
-                        rect.X + (rect.Width - dia) / 2,
-                        rect.Y + (rect.Height - dia) / 2,
-                        dia, dia);
+                // Draw "today" circle only if today exists AND belongs to this month.
 
-                    using var pen = new Pen(TodayCircleColor, TodayCircleStroke);
-                    g.DrawEllipse(pen, circle);
+                if (ShowToday && ShowTodayCircle && isToday && inMonth)
+                {
+                    todayCircles.Add(new Rectangle(
+                        rect.X + (rect.Width - TodayCircleDiameter) / 2,
+                        rect.Y + (rect.Height - TodayCircleDiameter) / 2,
+                        TodayCircleDiameter,
+                        TodayCircleDiameter));
                 }
+
 
                 cx += _cellWidth;
             }
 
             gridY += _cellHeight;
         }
+        
+        using var todayPen = new Pen(TodayCircleColor, TodayCircleStroke);
+        foreach (var circle in todayCircles)
+        {
+            g.DrawEllipse(todayPen, circle);
+        }
+
     }
 
+    
     // Paints a chevron glyph inside a rectangle (left/right).
     private void DrawChevron(Graphics g, Rectangle rect, bool left)
     {
@@ -430,7 +467,8 @@ internal sealed class CalendarControl : Control
         {
             var today = DateTime.Today;
             DisplayMonth = new DateTime(today.Year, today.Month, 1);
-            HighlightIsoWeek(today);
+            // Highlight today with ownership set to today's month to avoid duplicate highlight.
+            HighlightIsoWeek(today, new DateTime(today.Year, today.Month, 1));
             Invalidate();
             return;
         }
@@ -467,7 +505,11 @@ internal sealed class CalendarControl : Control
                         var offset = ((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek + 7) % 7;
                         DateTime gridStart = firstOfMonth.AddDays(-offset);
 
-                        HighlightIsoWeek(gridStart.AddDays(row * 7));
+                        // Set highlight week and explicitly assign ownership to the clicked month.
+                        var weekAnyDate = gridStart.AddDays(row * 7);
+                        _highlightWeekStart = StartOfIsoWeek(weekAnyDate);
+                        _highlightWeekMonth = firstOfMonth; // owning month = clicked month
+                        Invalidate();
                         return;
                     }
                 }
@@ -488,5 +530,3 @@ internal sealed class CalendarControl : Control
         return date.AddDays(1 - dow).Date;
     }
 }
-
-
