@@ -11,6 +11,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
     </PropertyGroup>
     <ItemGroup>
       <None Update="Resources\AppIcon.ico">

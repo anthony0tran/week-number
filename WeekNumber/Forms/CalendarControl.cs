@@ -167,7 +167,6 @@ internal sealed class CalendarControl : Control
         DrawChevron(g, _prevChevronRect, left: true);
         DrawChevron(g, _nextChevronRect, left: false);
 
-        // Draw each month's title inside the fixed header band.
         int across = CalendarDimensions.Width;
         int down   = CalendarDimensions.Height;
 
@@ -231,7 +230,6 @@ internal sealed class CalendarControl : Control
                 {
                     int divX = bounds.Right + _monthGap / 2;
                     using var dp = new Pen(DividerColor, 1f);
-                    // Divider starts below the header band.
                     g.DrawLine(dp, divX, bounds.Top + _headerHeight, divX, bounds.Bottom);
                 }
 
@@ -260,7 +258,6 @@ internal sealed class CalendarControl : Control
         int boxY = _footerRect.Y + (_footerRect.Height - _footerBoxSize) / 2;
         _todayBoxRect = new Rectangle(_footerRect.X, boxY, _footerBoxSize, _footerBoxSize);
 
-        // Fill background behind footer to cover any grid bleed.
         using (var bg = new SolidBrush(BackColor))
             g.FillRectangle(bg, _footerRect);
 
@@ -289,7 +286,6 @@ internal sealed class CalendarControl : Control
         int colX         = bounds.X;
         int namesY       = bounds.Y + _headerHeight;
 
-        // Day-name header row (CW + Mon..Sun).
         if (ShowWeekNumbers)
         {
             TextRenderer.DrawText(g, "CW", Font,
@@ -311,7 +307,6 @@ internal sealed class CalendarControl : Control
             colX += _cellWidth;
         }
 
-        // Date grid.
         DateTime firstOfMonth = new DateTime(month.Year, month.Month, 1);
         int      offset       = (((int)firstOfMonth.DayOfWeek - (int)dtf.FirstDayOfWeek) + 7) % 7;
         DateTime gridStart    = firstOfMonth.AddDays(-offset);
@@ -398,22 +393,24 @@ internal sealed class CalendarControl : Control
     // ── Metrics ───────────────────────────────────────────────────────────────
     private void ComputeMetrics(Graphics g)
     {
-        _headerVertPadding   = B_HeaderVertPadding;
-        _weekRowHeight       = B_WeekRowHeight;
-        _cellHeight          = B_CellHeight;
-        _cellWidth           = B_CellWidth;
-        _monthGap            = B_MonthGap;
-        _weekColumnWidth     = B_WeekColumnWidth;
-        _headerSidePadding   = B_HeaderSidePadding;
-        _footerHeight        = B_FooterHeight;
-        _footerSeparatorGap  = B_FooterSeparatorGap;
-        _gridBottomGap       = B_GridBottomGap;
-        _padLeft             = B_PadLeft;
-        _padTop              = B_PadTop;
-        _padRight            = B_PadRight;
-        _padBottom           = B_PadBottom;
-        _todayCircleDiameter = B_TodayCircleDiameter;
-        _footerBoxSize       = B_FooterBoxSize;
+        float scale = DeviceDpi / 96f;
+
+        _headerVertPadding   = Scale(B_HeaderVertPadding,   scale);
+        _weekRowHeight       = Scale(B_WeekRowHeight,        scale);
+        _cellHeight          = Scale(B_CellHeight,           scale);
+        _cellWidth           = Scale(B_CellWidth,            scale);
+        _monthGap            = Scale(B_MonthGap,             scale);
+        _weekColumnWidth     = Scale(B_WeekColumnWidth,      scale);
+        _headerSidePadding   = Scale(B_HeaderSidePadding,    scale);
+        _footerHeight        = Scale(B_FooterHeight,         scale);
+        _footerSeparatorGap  = Scale(B_FooterSeparatorGap,   scale);
+        _gridBottomGap       = Scale(B_GridBottomGap,        scale);
+        _padLeft             = Scale(B_PadLeft,              scale);
+        _padTop              = Scale(B_PadTop,               scale);
+        _padRight            = Scale(B_PadRight,             scale);
+        _padBottom           = Scale(B_PadBottom,            scale);
+        _todayCircleDiameter = Scale(B_TodayCircleDiameter,  scale);
+        _footerBoxSize       = Scale(B_FooterBoxSize,        scale);
 
         var dtf = _culture.DateTimeFormat;
 
@@ -434,10 +431,10 @@ internal sealed class CalendarControl : Control
             new Size(int.MaxValue, int.MaxValue),
             TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-        _cellWidth       = Math.Max(_cellWidth,       daySize.Width  + 8);
-        _weekColumnWidth = Math.Max(_weekColumnWidth,  weekSize.Width + 10);
-        _weekRowHeight   = Math.Max(_weekRowHeight,    daySize.Height + 4);
-        _cellHeight      = Math.Max(_cellHeight,       daySize.Height + 8);
+        _cellWidth       = Math.Max(_cellWidth,      daySize.Width  + Scale(8,  scale));
+        _weekColumnWidth = Math.Max(_weekColumnWidth, weekSize.Width + Scale(10, scale));
+        _weekRowHeight   = Math.Max(_weekRowHeight,   daySize.Height + Scale(4,  scale));
+        _cellHeight      = Math.Max(_cellHeight,      daySize.Height + Scale(8,  scale));
 
         _todayCircleDiameter = Math.Min(_todayCircleDiameter,
             Math.Min(_cellWidth, _cellHeight) - 2);
@@ -528,4 +525,6 @@ internal sealed class CalendarControl : Control
         if (dow == 0) dow = 7;
         return date.AddDays(1 - dow).Date;
     }
+
+    private static int Scale(int value, float scale) => (int)Math.Round(value * scale);
 }

@@ -85,8 +85,8 @@ public class AboutForm : Form
         int textX    = pad + iconSize + gap;
         int textTopY = picture.Location.Y;
 
-        var nameFont    = new Font("Segoe UI", ScaleFont(15f, scale), FontStyle.Bold);
-        var versionFont = new Font("Segoe UI", ScaleFont(9f,  scale), FontStyle.Regular);
+        var nameFont    = new Font("Segoe UI", 15f, FontStyle.Bold);
+        var versionFont = new Font("Segoe UI", 9f,  FontStyle.Regular);
 
         var nameLabel = new Label
         {
@@ -115,7 +115,7 @@ public class AboutForm : Form
             Text     = "View on GitHub  ↗",
             Size     = new Size(clientW - pad * 2, btnH),
             Location = new Point(pad, clientH - btnH - btnMarginBottom),
-            Font     = new Font("Segoe UI", ScaleFont(9f, scale), FontStyle.Regular),
+            Font     = new Font("Segoe UI", 9f, FontStyle.Regular),
             Cursor   = Cursors.Hand
         };
         githubBtn.Click += (_, _) =>
@@ -133,8 +133,7 @@ public class AboutForm : Form
         return icon.ToBitmap();
     }
 
-    private static int   Scale(int value, float scale)    => (int)Math.Round(value * scale);
-    private static float ScaleFont(float pt, float scale) => pt * scale;
+    private static int Scale(int value, float scale) => (int)Math.Round(value * scale);
 
     private const string GitHubUrl = "https://github.com/anthony0tran/week-number";
 }
@@ -151,7 +150,7 @@ internal class FlatButton : Control
     }
 
     protected override void OnMouseEnter(EventArgs e) { _hovered = true;  Invalidate(); base.OnMouseEnter(e); }
-    protected override void OnMouseLeave(EventArgs e) { _hovered = false; Invalidate(); base.OnMouseLeave(e); }
+    protected override void OnMouseLeave(EventArgs e) { _hovered = false; _pressed = false; Invalidate(); base.OnMouseLeave(e); }
     protected override void OnMouseDown(MouseEventArgs e) { _pressed = true;  Invalidate(); base.OnMouseDown(e); }
     protected override void OnMouseUp(MouseEventArgs e)   { _pressed = false; Invalidate(); base.OnMouseUp(e); }
 
