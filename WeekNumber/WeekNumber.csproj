@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Version>3.0.1</Version>
+        <Version>4.0.1</Version>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
@@ -11,6 +11,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
     </PropertyGroup>
     <ItemGroup>
       <None Update="Resources\AppIcon.ico">

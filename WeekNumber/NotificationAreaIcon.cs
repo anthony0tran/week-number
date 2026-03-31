@@ -19,9 +19,10 @@ public sealed class NotificationAreaIcon : IDisposable
     private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
     private const string DefaultFontFamily = "Arial";
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+    private ColorDialog? _colorDialog;
 
     public static NotificationAreaIcon Instance => _instance.Value;
-    
+
     internal NotificationAreaIcon(IIconFactory iconFactory)
     {
         _iconFactory = iconFactory;
@@ -34,19 +35,27 @@ public sealed class NotificationAreaIcon : IDisposable
         };
         var colorPickerMenuItem = new ToolStripMenuItem("Change Color", null, (_, _) =>
         {
-            using ColorDialog colorDialog = new();
-            colorDialog.AllowFullOpen = true;
-            colorDialog.AnyColor = true;
-            colorDialog.FullOpen = true;
-            colorDialog.CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
-
-            if (colorDialog.ShowDialog() != DialogResult.OK)
+            if (_colorDialog != null)
                 return;
 
-            _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
-            Properties.Settings.Default.SelectedColor = colorDialog.Color;
-            Properties.Settings.Default.Save();
-            UpdateIcon();
+            _colorDialog = new ColorDialog
+            {
+                AllowFullOpen = true,
+                AnyColor = true,
+                FullOpen = true,
+                CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]
+            };
+
+            if (_colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                _currentBrush = BrushHelper.GetBrushFromColor(_colorDialog.Color);
+                Properties.Settings.Default.SelectedColor = _colorDialog.Color;
+                Properties.Settings.Default.Save();
+                UpdateIcon();
+            }
+
+            _colorDialog.Dispose();
+            _colorDialog = null;
         });
 
         var fontStyleMenuItem = new ToolStripMenuItem("Font Style");
@@ -104,6 +113,8 @@ public sealed class NotificationAreaIcon : IDisposable
         if (e.Button != MouseButtons.Left)
             return;
 
+        _contextMenu.Close();
+
         _weekNumber.UpdateNumber();
         UpdateIcon();
         UpdateText();
@@ -119,7 +130,6 @@ public sealed class NotificationAreaIcon : IDisposable
         StartupHelper.SetStartup(menuItem.Checked);
     }
 
-    
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode != PowerModes.Resume)
@@ -153,7 +163,7 @@ public sealed class NotificationAreaIcon : IDisposable
     }
 
     internal NotifyIcon NotifyIcon => _notifyIcon;
-    
+
     public void Dispose()
     {
         if (_disposed)
@@ -162,11 +172,9 @@ public sealed class NotificationAreaIcon : IDisposable
         _notifyIcon.Dispose();
         _disposed = true;
     }
-    
+
     public void MenuAbout_Click(object? sender, EventArgs e)
     {
-        // Show AboutForm as a dialog
-        using var about = new AboutForm();
-        about.ShowDialog();
+        AboutForm.ShowInstance();
     }
 }

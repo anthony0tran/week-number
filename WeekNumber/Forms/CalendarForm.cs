@@ -1,5 +1,4 @@
-﻿
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Globalization;
 
 namespace WeekNumber.Forms;
@@ -7,11 +6,9 @@ namespace WeekNumber.Forms;
 public sealed class CalendarForm : Form
 {
     private static readonly Color CardBackgroundColor = Color.FromArgb(0xF6, 0xF6, 0xF6);
-    private static readonly Color CardBorderColor = Color.FromArgb(0xDE, 0xDE, 0xDE);
     private static readonly Color AccentColor = Color.FromArgb(0x1E, 0x6B, 0xD6);
 
-    private const int CornerRadius = 8;
-    private const int OuterPadding = 8;
+    private const int CornerRadius = 10;
     private const int InnerPadding = 8;
 
     private readonly DoubleBufferedPanel _cardPanel;
@@ -28,7 +25,7 @@ public sealed class CalendarForm : Form
         ShowInTaskbar = false;
         TopMost = true;
         BackColor = CardBackgroundColor;
-        Padding = new Padding(OuterPadding);
+        Padding = Padding.Empty;
         StartPosition = FormStartPosition.Manual;
         DoubleBuffered = true;
 
@@ -38,7 +35,6 @@ public sealed class CalendarForm : Form
             BackColor = CardBackgroundColor,
             Padding = new Padding(InnerPadding)
         };
-        _cardPanel.Paint += OnCardPanelPaint;
         Controls.Add(_cardPanel);
 
         _calendarControl = new CalendarControl
@@ -72,8 +68,6 @@ public sealed class CalendarForm : Form
         Deactivate += (_, _) => Close();
         KeyPreview = true;
         KeyDown += (_, e) => { if (e.KeyCode == Keys.Escape) Close(); };
-        Shown += (_, _) => UpdateFormRegion();
-        SizeChanged += (_, _) => UpdateFormRegion();
     }
 
     public void ShowAtCursor()
@@ -98,26 +92,5 @@ public sealed class CalendarForm : Form
 
         Location = new Point(x, y);
         Activate();
-    }
-
-    private void OnCardPanelPaint(object? sender, PaintEventArgs e)
-    {
-        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-
-        var rect = _cardPanel.ClientRectangle;
-        rect.Width -= 1;
-        rect.Height -= 1;
-
-        using var path = GraphicsUtil.CreateRoundedRect(rect, CornerRadius);
-        using var pen = new Pen(CardBorderColor);
-
-        e.Graphics.DrawPath(pen, path);
-    }
-
-    private void UpdateFormRegion()
-    {
-        var rect = new Rectangle(0, 0, Width, Height);
-        using var path = GraphicsUtil.CreateRoundedRect(rect, CornerRadius);
-        Region = new Region(path);
     }
 }
