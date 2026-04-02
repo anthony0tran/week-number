@@ -41,11 +41,6 @@ public record WeekNumber
     /// </summary>
     /// <param name="date">The date to calculate the week number for.</param>
     /// <returns>The ISO week number.</returns>
-    private static int CalculateWeekNumber(DateTime date)
-    {
-        if (date.Year is < 1 or > 9999)
-            throw new ArgumentOutOfRangeException(nameof(date), "Year must be between 1 and 9999.");
-
-        return ISOWeek.GetWeekOfYear(date);
-    }
+    private static int CalculateWeekNumber(DateTime date) =>
+        ISOWeek.GetWeekOfYear(date);
 }

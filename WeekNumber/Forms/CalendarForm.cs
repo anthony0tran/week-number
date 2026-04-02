@@ -1,8 +1,4 @@
-﻿
-using System.Drawing.Drawing2D;
-using System.Globalization;
-
-namespace WeekNumber.Forms;
+﻿namespace WeekNumber.Forms;
 
 public sealed class CalendarForm : Form
 {
@@ -10,8 +6,6 @@ public sealed class CalendarForm : Form
     private static readonly Color CardBorderColor = Color.FromArgb(0xDE, 0xDE, 0xDE);
     private static readonly Color AccentColor = Color.FromArgb(0x1E, 0x6B, 0xD6);
 
-    private const int CornerRadius = 8;
-    private const int OuterPadding = 8;
     private const int InnerPadding = 8;
 
     private readonly DoubleBufferedPanel _cardPanel;
@@ -19,11 +13,6 @@ public sealed class CalendarForm : Form
 
     public CalendarForm()
     {
-        var isoCulture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
-        isoCulture.DateTimeFormat.CalendarWeekRule = CalendarWeekRule.FirstFourDayWeek;
-        isoCulture.DateTimeFormat.FirstDayOfWeek = DayOfWeek.Monday;
-        Thread.CurrentThread.CurrentCulture = isoCulture;
-
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         TopMost = true;

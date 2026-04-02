@@ -15,13 +15,21 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly IIconFactory _iconFactory;
     private bool _disposed;
     private const int IconSizeInPixels = 32;
-    private static FontStyle _currentFontStyle = (FontStyle)Properties.Settings.Default.SelectedFontStyle;
-    private Brush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
+    private static FontStyle _currentFontStyle = ValidateFontStyle(Properties.Settings.Default.SelectedFontStyle);
+    private SolidBrush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
     private const string DefaultFontFamily = "Arial";
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+    private Icon? _currentIcon;
+    private ColorDialog? _colorDialog;
+
+    private static FontStyle ValidateFontStyle(int raw)
+    {
+        const FontStyle allowed = FontStyle.Bold | FontStyle.Italic | FontStyle.Strikeout;
+        return (FontStyle)(raw & (int)allowed);
+    }
 
     public static NotificationAreaIcon Instance => _instance.Value;
-    
+
     internal NotificationAreaIcon(IIconFactory iconFactory)
     {
         _iconFactory = iconFactory;
@@ -34,19 +42,29 @@ public sealed class NotificationAreaIcon : IDisposable
         };
         var colorPickerMenuItem = new ToolStripMenuItem("Change Color", null, (_, _) =>
         {
-            using ColorDialog colorDialog = new();
-            colorDialog.AllowFullOpen = true;
-            colorDialog.AnyColor = true;
-            colorDialog.FullOpen = true;
-            colorDialog.CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
-
-            if (colorDialog.ShowDialog() != DialogResult.OK)
+            if (_colorDialog != null)
                 return;
 
-            _currentBrush = BrushHelper.GetBrushFromColor(colorDialog.Color);
-            Properties.Settings.Default.SelectedColor = colorDialog.Color;
-            Properties.Settings.Default.Save();
-            UpdateIcon();
+            _colorDialog = new ColorDialog
+            {
+                AllowFullOpen = true,
+                AnyColor = true,
+                FullOpen = true,
+                CustomColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]
+            };
+
+            if (_colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                var oldBrush = _currentBrush;
+                _currentBrush = BrushHelper.GetBrushFromColor(_colorDialog.Color);
+                Properties.Settings.Default.SelectedColor = _colorDialog.Color;
+                Properties.Settings.Default.Save();
+                oldBrush.Dispose();
+                UpdateIcon();
+            }
+
+            _colorDialog.Dispose();
+            _colorDialog = null;
         });
 
         var fontStyleMenuItem = new ToolStripMenuItem("Font Style");
@@ -69,7 +87,9 @@ public sealed class NotificationAreaIcon : IDisposable
                 Properties.Settings.Default.SelectedFontStyle = (int)_currentFontStyle;
                 Properties.Settings.Default.Save();
 
+                var oldFont = _font;
                 _font = new Font(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
+                oldFont.Dispose();
                 UpdateIcon();
             };
 
@@ -84,9 +104,10 @@ public sealed class NotificationAreaIcon : IDisposable
         _contextMenu.Items.Add(new ToolStripSeparator());
         _contextMenu.Items.Add(exitMenuItem);
 
+        _currentIcon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels);
         _notifyIcon = new NotifyIcon
         {
-            Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels),
+            Icon = _currentIcon,
             Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}",
             Visible = true,
             ContextMenuStrip = _contextMenu
@@ -104,6 +125,8 @@ public sealed class NotificationAreaIcon : IDisposable
         if (e.Button != MouseButtons.Left)
             return;
 
+        _contextMenu.Close();
+
         _weekNumber.UpdateNumber();
         UpdateIcon();
         UpdateText();
@@ -119,7 +142,6 @@ public sealed class NotificationAreaIcon : IDisposable
         StartupHelper.SetStartup(menuItem.Checked);
     }
 
-    
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode != PowerModes.Resume)
@@ -144,7 +166,10 @@ public sealed class NotificationAreaIcon : IDisposable
 
     internal void UpdateIcon()
     {
-        _notifyIcon.Icon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels);
+        var oldIcon = _currentIcon;
+        _currentIcon = _iconFactory.CreateNumberIcon(_weekNumber.Number, _font, _currentBrush, IconSizeInPixels);
+        _notifyIcon.Icon = _currentIcon;
+        oldIcon?.Dispose();
     }
 
     internal void UpdateText()
@@ -153,20 +178,21 @@ public sealed class NotificationAreaIcon : IDisposable
     }
 
     internal NotifyIcon NotifyIcon => _notifyIcon;
-    
+
     public void Dispose()
     {
         if (_disposed)
             return;
 
         _notifyIcon.Dispose();
+        _currentIcon?.Dispose();
+        _font.Dispose();
+        _currentBrush.Dispose();
         _disposed = true;
     }
-    
+
     public void MenuAbout_Click(object? sender, EventArgs e)
     {
-        // Show AboutForm as a dialog
-        using var about = new AboutForm();
-        about.ShowDialog();
+        AboutForm.ShowInstance();
     }
 }
