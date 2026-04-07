@@ -19,14 +19,7 @@ public sealed class NotificationAreaIcon : IDisposable
     private SolidBrush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
     private const string DefaultFontFamily = "Arial";
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
-    private Icon? _currentIcon;
     private ColorDialog? _colorDialog;
-
-    private static FontStyle ValidateFontStyle(int raw)
-    {
-        const FontStyle allowed = FontStyle.Bold | FontStyle.Italic | FontStyle.Strikeout;
-        return (FontStyle)(raw & (int)allowed);
-    }
 
     public static NotificationAreaIcon Instance => _instance.Value;
 
@@ -55,11 +48,9 @@ public sealed class NotificationAreaIcon : IDisposable
 
             if (_colorDialog.ShowDialog() == DialogResult.OK)
             {
-                var oldBrush = _currentBrush;
                 _currentBrush = BrushHelper.GetBrushFromColor(_colorDialog.Color);
                 Properties.Settings.Default.SelectedColor = _colorDialog.Color;
                 Properties.Settings.Default.Save();
-                oldBrush.Dispose();
                 UpdateIcon();
             }
 
