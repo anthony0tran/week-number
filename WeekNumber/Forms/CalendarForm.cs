@@ -16,11 +16,6 @@ public sealed class CalendarForm : Form
 
     public CalendarForm()
     {
-        var isoCulture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
-        isoCulture.DateTimeFormat.CalendarWeekRule = CalendarWeekRule.FirstFourDayWeek;
-        isoCulture.DateTimeFormat.FirstDayOfWeek = DayOfWeek.Monday;
-        Thread.CurrentThread.CurrentCulture = isoCulture;
-
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         TopMost = true;

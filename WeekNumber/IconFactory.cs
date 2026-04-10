@@ -1,4 +1,5 @@
 ﻿using System.Drawing.Text;
+using System.Runtime.InteropServices;
 
 namespace WeekNumber;
 
@@ -29,6 +30,16 @@ public class IconFactory : IIconFactory
             TextFormatFlags.NoPadding);
 
         var handle = bitmap.GetHicon();
-        return Icon.FromHandle(handle);
+        try
+        {
+            return (Icon)Icon.FromHandle(handle).Clone();
+        }
+        finally
+        {
+            DestroyIcon(handle);
+        }
     }
+
+    [DllImport("user32.dll")]
+    private static extern bool DestroyIcon(IntPtr handle);
 }
