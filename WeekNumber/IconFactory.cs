@@ -40,6 +40,7 @@ public class IconFactory : IIconFactory
         }
     }
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DestroyIcon(IntPtr handle);
 }

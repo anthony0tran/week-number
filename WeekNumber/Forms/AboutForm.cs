@@ -118,12 +118,7 @@ public class AboutForm : Form
             Font     = new Font("Segoe UI", 9f, FontStyle.Regular),
             Cursor   = Cursors.Hand
         };
-        githubBtn.Click += (_, _) =>
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName        = GitHubUrl,
-                UseShellExecute = true
-            });
+        githubBtn.Click += (_, _) => OpenUrl(GitHubUrl);
         Controls.Add(githubBtn);
     }
 
@@ -131,6 +126,19 @@ public class AboutForm : Form
     {
         using var icon = new Icon(iconPath, new Size(size, size));
         return icon.ToBitmap();
+    }
+
+    private static void OpenUrl(string url)
+    {
+        // Only allow HTTPS URLs to prevent shell-execution of arbitrary protocols.
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+            return;
+
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName        = uri.AbsoluteUri,
+            UseShellExecute = true
+        });
     }
 
     private static int Scale(int value, float scale) => (int)Math.Round(value * scale);
