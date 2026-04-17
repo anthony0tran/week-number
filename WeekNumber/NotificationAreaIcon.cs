@@ -15,8 +15,8 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly IIconFactory _iconFactory;
     private bool _disposed;
     private const int IconSizeInPixels = 32;
-    private static FontStyle _currentFontStyle = ValidateFontStyle(Properties.Settings.Default.SelectedFontStyle);
-    private SolidBrush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
+    private static FontStyle _currentFontStyle = LoadFontStyle();
+    private SolidBrush _currentBrush = LoadBrush();
     private const string DefaultFontFamily = "Arial";
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
     private Icon? _currentIcon;
@@ -26,6 +26,24 @@ public sealed class NotificationAreaIcon : IDisposable
     {
         const FontStyle allowed = FontStyle.Bold | FontStyle.Italic | FontStyle.Strikeout;
         return (FontStyle)(raw & (int)allowed);
+    }
+
+    private static FontStyle LoadFontStyle()
+    {
+        try { return ValidateFontStyle(Properties.Settings.Default.SelectedFontStyle); }
+        catch { return FontStyle.Regular; }
+    }
+
+    private static SolidBrush LoadBrush()
+    {
+        try
+        {
+            var c = Properties.Settings.Default.SelectedColor;
+            // Clamp to a fully-opaque colour; reject transparent/unset defaults.
+            var safe = Color.FromArgb(255, c.R, c.G, c.B);
+            return BrushHelper.GetBrushFromColor(safe);
+        }
+        catch { return new SolidBrush(Color.White); }
     }
 
     public static NotificationAreaIcon Instance => _instance.Value;
