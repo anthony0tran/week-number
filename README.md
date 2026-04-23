@@ -43,7 +43,6 @@ Perfect for people who work with schedules, planning cycles, school timetables, 
 ## Requirements 🖥️
 
 - Windows 10 or newer 🪟
-- .NET SDK with Windows desktop support (target framework: `net10.0-windows`) 🛠️
 
 ## For Developers 👩‍💻👨‍💻
 
