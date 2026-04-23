@@ -8,7 +8,7 @@ namespace WeekNumber.Tests;
 public class BrushHelperTests
 {
     [Fact]
-    public void GetBrushFromColor_ReturnsPredefinedBrush_WhenColorIsKnown()
+    public void GetBrushFromColor_ReturnsSolidBrushWithMatchingColor_WhenColorIsKnown()
     {
         // Arrange
         var color = Color.Red;
@@ -18,8 +18,9 @@ public class BrushHelperTests
 
         // Assert
         brush.ShouldBeOfType<SolidBrush>();
-        ((SolidBrush)brush).Color.ShouldBe(color);
-        brush.ShouldBeSameAs(Brushes.Red);
+        brush.Color.ShouldBe(color);
+        // The implementation always constructs a new SolidBrush (not a cached predefined brush).
+        brush.ShouldNotBeSameAs(Brushes.Red);
     }
 
     [Fact]
