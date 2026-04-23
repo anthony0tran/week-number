@@ -1,34 +1,85 @@
 # Week Number
 
-Week Number is a lightweight Windows utility that leverages [NotifyIcon](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon?view=windowsdesktop-9.0) to display the current ISO week number directly in your system tray. 
+Never lose track of the current week again.
+
+Week Number is a tiny Windows tray app that keeps the current week number visible right in your taskbar corner. No opening apps, no digging through calendars, no extra clutter.
+
+Perfect for people who work with schedules, planning cycles, school timetables, sprint boards, payroll weeks, or recurring deadlines.
+
+## Why People Like It
+
+- **Always visible**: the week number lives in your system tray.
+- **One-click calendar**: left-click to open a clean popup calendar with week numbers.
+- **Your style**: choose your icon color and font style.
+- **Set and forget**: optional startup mode launches it when Windows starts.
+- **Lightweight**: built to stay out of your way.
+
 ## Features
 
-- \*\*Taskbar Notification\*\*: Shows the current ISO week number as an icon in the Windows notification area.
-- \*\*Accurate Calculation\*\*: Uses [ISOWeek](https://learn.microsoft.com/en-us/dotnet/api/system.globalization.isoweek.getweekofyear?view=net-9.0#system-globalization-isoweek-getweekofyear(system-datetime)) for correct week numbers.
-- \*\*Customizable Appearance\*\*: Change the icon color and font style via the context menu.
-- \*\*Startup Option\*\*: Easily enable or disable running the app at Windows startup.
-- \*\*Quick Calendar Access\*\*: Left-click the icon to view a calendar.
+- Tray icon displays the current ISO week number.
+- Left-click refreshes the icon and opens a modern popup calendar.
+- Right-click context menu includes:
+  - Run at Startup
+  - Change Color
+  - Font Style (Bold, Italic, Strikeout)
+  - About
+  - Exit
+- Saves your selected color and font style automatically.
+- About dialog shows the app version and a GitHub link.
 
-## How It Works
+## Quick Start
 
-- The app calculates the ISO week number using the `WeekNumber` class.
-- The icon is rendered dynamically with the current week number using the `IconFactory` and `IIconFactory` classes.
-- The `NotificationAreaIcon` class manages the tray icon, context menu, and user interactions.
-- The `StartupManager` class handles Windows startup registration via the registry.
+1. Launch Week Number.
+2. Look at your notification area (system tray) for the week-number icon.
+3. Left-click to open the calendar.
+4. Right-click for settings and options.
 
-## Usage
+## Built For Everyday Use
 
-1. \*\*Run the application\*\*. The current week number appears in your notification area.
-2. \*\*Right-click the icon\*\* to access options:
-    - Change color
-    - Change font style
-    - Enable/disable startup
-    - Exit the application
-3. \*\*Left-click the icon\*\* to update the week number and open the calendar.
+- Uses ISO-8601 week numbering for consistent week values.
+- Updates cleanly after resume and on manual refresh.
+- Designed for Windows with DPI-aware UI behavior.
 
 ## Requirements
 
-- Windows 10 or later
+- Windows 10 or newer
+- .NET SDK with Windows desktop support (target framework: `net10.0-windows`)
+
+## For Developers
+
+Run from source:
+
+```powershell
+dotnet run --project .\WeekNumber\WeekNumber.csproj
+```
+
+Run tests:
+
+```powershell
+dotnet test .\WeekNumber.Tests\WeekNumber.Tests.csproj
+```
+
+Publish (single-file, self-contained `win-x64`):
+
+```powershell
+dotnet publish .\WeekNumber\WeekNumber.csproj -c Release
+```
+
+## Technical Notes
+
+- `Program` initializes WinForms, wires global exception handlers, and starts the tray lifecycle.
+- `NotificationAreaIcon` owns the `NotifyIcon`, context menu actions, tooltip text, and event handling.
+- `WeekNumber` stores current number + last updated timestamp and recalculates on refresh.
+- `IconFactory` renders the week number into a transparent tray icon.
+- `CalendarForm` hosts `CalendarControl`, a DPI-aware custom calendar with ISO week numbers.
+- `StartupHelper` manages startup registration in `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
+
+## Security and Reliability Notes
+
+- Startup registration is only written for trusted executable locations.
+- P/Invoke DLL search paths are constrained to System32.
+- The app runs as standard user (`asInvoker`) and includes DPI-awareness manifest settings.
+- Unhandled exceptions are caught and displayed as a minimal, non-sensitive error dialog.
 
 ## License
 
