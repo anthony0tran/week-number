@@ -6,6 +6,15 @@ Week Number is a tiny Windows tray app that keeps the current week number visibl
 
 Perfect for people who work with schedules, planning cycles, school timetables, sprint boards, payroll weeks, or recurring deadlines. ✅
 
+## Install from EXE 📥
+
+1. Download the latest `WeekNumber.exe` from the official GitHub Releases page. 🔽
+2. Double-click the downloaded EXE to launch the app. ▶️
+3. If Microsoft Defender SmartScreen appears:
+  - Click **More info**
+  - Click **Run anyway**
+4. The app will start in your system tray (notification area). ✅
+
 ## Why People Like It 💖
 
 - **Always visible**: the week number lives in your system tray. 👀
