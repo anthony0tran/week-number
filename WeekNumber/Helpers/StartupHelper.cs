@@ -1,5 +1,3 @@
-using Microsoft.Win32;
-
 namespace WeekNumber.Helpers;
 
 public static class StartupHelper
@@ -15,32 +13,20 @@ public static class StartupHelper
     {
         try
         {
-            if (enable)
+            using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RegistryKey, true);
+            if (key == null) return;
+            if (!enable)
             {
-                var path = GetValidatedQuotedPath();
-                if (path == null) return;
-
-                using var runKey = Registry.CurrentUser.CreateSubKey(RunKey, true);
-                if (runKey == null) return;
-                runKey.SetValue(AppName, path);
-
-                // Mark as approved so Windows doesn't suppress launch via StartupApproved.
-                MarkStartupApproved();
+                key.DeleteValue(AppName, false);
+                return;
             }
-            else
-            {
-                using var runKey = Registry.CurrentUser.OpenSubKey(RunKey, true);
-                runKey?.DeleteValue(AppName, false);
-
-                // Also remove the StartupApproved entry to keep state consistent.
-                using var approvedKey = Registry.CurrentUser.OpenSubKey(StartupApprovedKey, true);
-                approvedKey?.DeleteValue(AppName, false);
-            }
+            var path = GetTrustedQuotedPath();
+            if (path == null) return;
+            key.SetValue(AppName, path);
         }
-        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException
-                                       or InvalidOperationException or System.Security.SecurityException)
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or InvalidOperationException)
         {
-            // Registry operation denied — silently skip.
+            // Registry write denied — silently skip; startup won't be persisted.
         }
     }
 

@@ -14,23 +14,23 @@ internal sealed class CalendarControl : Control
 
     // ── Base metrics at 96 DPI — scaled linearly via DeviceDpi ──────────────
 
-    private const int B_HeaderVertPad  = 10;
-    private const int B_WeekRowHeight  = 22;
-    private const int B_CellHeight     = 26;
-    private const int B_CellWidth      = 36;
-    private const int B_MonthGap       = 16;
-    private const int B_WeekColWidth   = 38;
-    private const int B_HeaderSidePad  = 28;
-    private const int B_FooterHeight   = 30;
-    private const int B_FooterSepGap   = 8;
-    private const int B_GridBottomGap  = 4;
-    private const int B_PadLeft        = 8;
-    private const int B_PadTop         = 8;
-    private const int B_PadRight       = 14;
-    private const int B_PadBottom      = 8;
-    private const int B_TodayDiameter  = 24;
-    private const int B_FooterDotSize  = 8;
-    private const int B_CornerRadius   = 10;
+    private const int B_HeaderVertPad  = 4;
+    private const int B_WeekRowHeight  = 18;
+    private const int B_CellHeight     = 22;
+    private const int B_CellWidth      = 32;
+    private const int B_MonthGap       = 12;
+    private const int B_WeekColWidth   = 32;
+    private const int B_HeaderSidePad  = 24;
+    private const int B_FooterHeight   = 22;
+    private const int B_FooterSepGap   = 4;
+    private const int B_GridBottomGap  = 2;
+    private const int B_PadLeft        = 6;
+    private const int B_PadTop         = 6;
+    private const int B_PadRight       = 10;
+    private const int B_PadBottom      = 4;
+    private const int B_TodayDiameter  = 20;
+    private const int B_FooterDotSize  = 7;
+    private const int B_CornerRadius   = 8;
 
     // ── Scaled metrics (recomputed every paint) ─────────────────────────────
 
@@ -203,7 +203,7 @@ internal sealed class CalendarControl : Control
         int monthWidth = weekCol + _cellWidth * 7;
         int mhFixed    = _headerHeight + _weekRowHeight + _cellHeight * FixedWeeksPerMonth;
 
-        int titleCenterY = _padTop + _headerHeight / 2;
+        int titleCenterY = (_padTop + _headerHeight) / 2;
 
         // ── Chevrons ──
 
@@ -241,35 +241,37 @@ internal sealed class CalendarControl : Control
         }
     }
 
-    private void DrawMonthTitle(Graphics g, DateTime month, int x, int y, int monthWidth)
-    {
-        var dtf = _culture.DateTimeFormat;
+private void DrawMonthTitle(Graphics g, DateTime month, int x, int y, int monthWidth)
+{
+    var dtf = _culture.DateTimeFormat;
 
-        string monthName = dtf.GetMonthName(month.Month);
-        string yearStr   = $" {month.Year}";
+    string monthName = dtf.GetMonthName(month.Month);
+    string yearStr   = $" {month.Year}";
 
-        var monthSize = TextRenderer.MeasureText(g, monthName, _titleFont!,
-            new Size(int.MaxValue, int.MaxValue),
-            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+    var monthSize = TextRenderer.MeasureText(g, monthName, _titleFont!,
+        new Size(int.MaxValue, int.MaxValue),
+        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-        var yearSize = TextRenderer.MeasureText(g, yearStr, _yearFont!,
-            new Size(int.MaxValue, int.MaxValue),
-            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+    var yearSize = TextRenderer.MeasureText(g, yearStr, _yearFont!,
+        new Size(int.MaxValue, int.MaxValue),
+        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-        int totalW   = monthSize.Width + yearSize.Width;
-        int startX   = x + (monthWidth - totalW) / 2;
-        int centerY  = y + _headerHeight / 2;
-        int monthTop = centerY - monthSize.Height / 2;
-        int yearTop  = centerY - yearSize.Height / 2;
+    int totalW = monthSize.Width + yearSize.Width;
+    int startX = x + (monthWidth - totalW) / 2;
 
-        TextRenderer.DrawText(g, monthName, _titleFont!,
-            new Point(startX, monthTop), TitleTextColor,
-            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+    // Span from y=0 so VerticalCenter covers the full visual band including _padTop
+    int bandHeight = y + _headerHeight;
 
-        TextRenderer.DrawText(g, yearStr, _yearFont!,
-            new Point(startX + monthSize.Width, yearTop), YearTextColor,
-            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
-    }
+    TextRenderer.DrawText(g, monthName, _titleFont!,
+        new Rectangle(startX, 0, monthSize.Width, bandHeight),
+        TitleTextColor,
+        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter);
+
+    TextRenderer.DrawText(g, yearStr, _yearFont!,
+        new Rectangle(startX + monthSize.Width, 0, yearSize.Width, bandHeight),
+        YearTextColor,
+        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter);
+}
 
     // ── Grid ────────────────────────────────────────────────────────────────
 
@@ -356,8 +358,8 @@ internal sealed class CalendarControl : Control
             if (isHighlighted)
             {
                 var barRect = new RectangleF(
-                    bounds.X + 2f, gridY + 1f,
-                    bounds.Width - 4f, _cellHeight - 2f);
+                    bounds.X + 2f, gridY + 3f,
+                    bounds.Width - 4f, _cellHeight - 4f);
 
                 using var path = CreateRoundedRect(barRect, _cornerRadius);
                 using var fill = new SolidBrush(HighlightFillColor);
@@ -390,8 +392,8 @@ internal sealed class CalendarControl : Control
 
                 int diam = _todayDiameter;
                 var circleRect = new RectangleF(
-                    rect.X + (rect.Width  - diam) / 2f,
-                    rect.Y + (rect.Height - diam) / 2f,
+                    rect.X + (rect.Width  - diam) / 2f - 0.5f,
+                    rect.Y + (rect.Height - diam) / 2f + 1f,
                     diam, diam);
 
                 if (isHovered && !(ShowToday && ShowTodayCircle && isToday && inMonth))
@@ -428,41 +430,49 @@ internal sealed class CalendarControl : Control
 
     // ── Footer ──────────────────────────────────────────────────────────────
 
-    private void PaintFooter(Graphics g)
-    {
-        int down    = CalendarDimensions.Height;
-        int weekCol = ShowWeekNumbers ? _weekColWidth : 0;
-        int mhFixed = _headerHeight + _weekRowHeight + _cellHeight * FixedWeeksPerMonth;
+private void PaintFooter(Graphics g)
+{
+    int down    = CalendarDimensions.Height;
+    int weekCol = ShowWeekNumbers ? _weekColWidth : 0;
+    int mhFixed = _headerHeight + _weekRowHeight + _cellHeight * FixedWeeksPerMonth;
 
-        int totalWidth = CalendarDimensions.Width * (weekCol + _cellWidth * 7)
-                       + (CalendarDimensions.Width - 1) * _monthGap;
+    int totalWidth = CalendarDimensions.Width * (weekCol + _cellWidth * 7)
+                   + (CalendarDimensions.Width - 1) * _monthGap;
 
-        int sepY = _padTop + down * mhFixed + (down - 1) * _monthGap + _gridBottomGap;
+    int sepY = _padTop + down * mhFixed + (down - 1) * _monthGap + _gridBottomGap;
 
-        using (var sp = new Pen(DividerColor, 1f))
-            g.DrawLine(sp, _padLeft, sepY, _padLeft + totalWidth, sepY);
+    using (var sp = new Pen(DividerColor, 1f))
+        g.DrawLine(sp, _padLeft, sepY, _padLeft + totalWidth, sepY);
 
-        _footerRect = new Rectangle(
-            _padLeft, sepY + _footerSepGap,
-            totalWidth, _footerHeight);
+    // Anchor bottom of footer to actual client bottom minus pad,
+    // so it stays centered regardless of form padding below the control.
+    int footerBottom = ClientRectangle.Bottom - _padBottom;
+    int footerTop    = sepY + _footerSepGap;
 
-        int dotY = _footerRect.Y + (_footerRect.Height - _footerDotSize) / 2;
-        var dotRect = new Rectangle(_footerRect.X + 4, dotY, _footerDotSize, _footerDotSize);
-        using (var dotBrush = new SolidBrush(Accent))
-            g.FillEllipse(dotBrush, dotRect);
+    _footerRect = new Rectangle(
+        _padLeft, footerTop,
+        totalWidth, footerBottom - footerTop);
 
-        string todayLabel = $"Today: {DateTime.Today:dd-MM-yyyy}";
+    float centerY = _footerRect.Y + _footerRect.Height / 2f;
 
-        TextRenderer.DrawText(g, todayLabel, _dayNameFont!,
-            new Rectangle(dotRect.Right + 8, _footerRect.Y,
-                          _footerRect.Width - dotRect.Right - 8 + _footerRect.X,
-                          _footerRect.Height),
-            _footerHovered ? Accent : SecondaryForeground,
-            TextFormatFlags.VerticalCenter |
-            TextFormatFlags.Left           |
-            TextFormatFlags.SingleLine     |
-            TextFormatFlags.NoPadding);
-    }
+    var dotRect = new RectangleF(
+        _footerRect.X + 4,
+        centerY - _footerDotSize / 2f,
+        _footerDotSize, _footerDotSize);
+
+    using (var dotBrush = new SolidBrush(Accent))
+        g.FillEllipse(dotBrush, dotRect);
+
+    string todayLabel = $"Today: {DateTime.Today:dd-MM-yyyy}";
+
+    using var footerSf    = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
+    using var footerBrush = new SolidBrush(_footerHovered ? Accent : SecondaryForeground);
+    g.DrawString(todayLabel, _dayNameFont!, footerBrush,
+        new RectangleF(dotRect.Right + 8, _footerRect.Y,
+                       _footerRect.Width - (dotRect.Right + 8 - _footerRect.X),
+                       _footerRect.Height),
+        footerSf);
+}
 
     // ── Chevron ─────────────────────────────────────────────────────────────
 
@@ -744,7 +754,7 @@ internal sealed class CalendarControl : Control
         _todayDiameter = Math.Min(_todayDiameter,
             Math.Min(_cellWidth, _cellHeight) - 4);
 
-        _headerHeight  = titleSize.Height + 2 * _headerVertPad;
+        _headerHeight = titleSize.Height + 2 * _headerVertPad;
     }
 
     private Size ComputeTotalSize()
