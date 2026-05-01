@@ -44,6 +44,55 @@ public class IconFactoryTests : IDisposable
         });
     }
 
+    // ── Input validation: out-of-range week numbers are clamped ────────────────
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void CreateNumberIcon_ClampsToMin_WhenNumberBelowRange(int weekNumber)
+    {
+        // Should not throw; clamps to 1.
+        using var icon = _factory.CreateNumberIcon(weekNumber, _font, _brush, 32);
+        icon.ShouldNotBeNull();
+    }
+
+    [Theory]
+    [InlineData(54)]
+    [InlineData(100)]
+    [InlineData(int.MaxValue)]
+    public void CreateNumberIcon_ClampsToMax_WhenNumberAboveRange(int weekNumber)
+    {
+        // Should not throw; clamps to 53.
+        using var icon = _factory.CreateNumberIcon(weekNumber, _font, _brush, 32);
+        icon.ShouldNotBeNull();
+    }
+
+    // ── Input validation: out-of-range icon sizes ─────────────────────────────
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-50)]
+    public void CreateNumberIcon_DefaultsSize_WhenSizeIsZeroOrNegative(int size)
+    {
+        using var icon = _factory.CreateNumberIcon(1, _font, _brush, size);
+        icon.ShouldNotBeNull();
+        icon.Width.ShouldBe(32);
+        icon.Height.ShouldBe(32);
+    }
+
+    [Theory]
+    [InlineData(257)]
+    [InlineData(1000)]
+    public void CreateNumberIcon_DefaultsSize_WhenSizeExceedsMax(int size)
+    {
+        using var icon = _factory.CreateNumberIcon(1, _font, _brush, size);
+        icon.ShouldNotBeNull();
+        icon.Width.ShouldBe(32);
+        icon.Height.ShouldBe(32);
+    }
+
     [Fact]
     public void CreateNumberIcon_WorksWithBoldFont()
     {
@@ -71,7 +120,6 @@ public class IconFactoryTests : IDisposable
     [Fact]
     public void CreateNumberIcon_WorksWithNonSolidBrush()
     {
-        // When brush is not a SolidBrush the factory should fall back to white text.
         using var hatch = new System.Drawing.Drawing2D.HatchBrush(
             System.Drawing.Drawing2D.HatchStyle.Cross, Color.Red);
         using var icon = _factory.CreateNumberIcon(5, _font, hatch, 32);
