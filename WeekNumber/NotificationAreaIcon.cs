@@ -192,7 +192,9 @@ public sealed class NotificationAreaIcon : IDisposable
 
     internal void UpdateText()
     {
-        _notifyIcon.Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
+        // Truncate tooltip text to NotifyIcon's 63 char limit to prevent buffer issues.
+        var text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
+        _notifyIcon.Text = text.Length > 63 ? text[..63] : text;
     }
 
     internal NotifyIcon NotifyIcon => _notifyIcon;
@@ -202,11 +204,21 @@ public sealed class NotificationAreaIcon : IDisposable
         if (_disposed)
             return;
 
+        _disposed = true;
+
+        // Remove event handlers first to prevent callbacks during teardown.
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+        Application.ApplicationExit -= OnApplicationExit;
+        _notifyIcon.MouseClick -= NotifyIcon_LeftMouseClick;
+
+        // Hide the icon immediately to prevent stale tray icons after exit.
+        _notifyIcon.Visible = false;
+
         _notifyIcon.Dispose();
+        _contextMenu.Dispose();
         _currentIcon?.Dispose();
         _font.Dispose();
         _currentBrush.Dispose();
-        _disposed = true;
     }
 
     public void MenuAbout_Click(object? sender, EventArgs e)

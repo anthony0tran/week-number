@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Version>4.0</Version>
+        <Version>4.0.1</Version>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
@@ -15,6 +15,14 @@
         <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <ApplicationManifest>app.manifest</ApplicationManifest>
+
+        <!-- ═══ Security hardening ═══ -->
+        <!-- CET Shadow Stack: hardware-enforced return address protection (Intel CET / AMD Shadow Stack) -->
+        <CETCompat>true</CETCompat>
+        <!-- Enable NuGet package vulnerability auditing at build time -->
+        <NuGetAudit>true</NuGetAudit>
+        <NuGetAuditLevel>low</NuGetAuditLevel>
+        <NuGetAuditMode>all</NuGetAuditMode>
 
         <!-- Size optimisations -->
         <PublishReadyToRun>false</PublishReadyToRun>

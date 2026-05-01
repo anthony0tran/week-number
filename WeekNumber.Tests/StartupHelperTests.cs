@@ -19,7 +19,6 @@ public class StartupHelperTests
     [Fact]
     public void IsStartupEnabled_ReturnsBooleanValue()
     {
-        // Just verifies the method completes and returns a valid bool.
         var result = StartupHelper.IsStartupEnabled();
         (result == true || result == false).ShouldBeTrue();
     }
@@ -29,15 +28,12 @@ public class StartupHelperTests
     [Fact]
     public void SetStartup_DoesNotThrow_WhenDisabling()
     {
-        // Disabling startup should never throw even when the key doesn't exist.
         Should.NotThrow(() => StartupHelper.SetStartup(false));
     }
 
     [Fact]
     public void SetStartup_DoesNotThrow_WhenEnabling()
     {
-        // Enabling startup is best-effort; it may silently do nothing if the
-        // executable path isn't in a trusted location (e.g. during tests).
         Should.NotThrow(() => StartupHelper.SetStartup(true));
     }
 
@@ -49,53 +45,53 @@ public class StartupHelperTests
         Should.NotThrow(() => StartupHelper.UpdateRegistryKey());
     }
 
-    // ── IsTrustedLocation (private) ────────────────────────────────────────────
+    // ── ContainsDangerousCharacters (private) ──────────────────────────────────
 
     [Theory]
-    [InlineData(@"C:\RandomTempFolder\app.exe",         false)]
-    [InlineData(@"C:\Users\user\Downloads\app.exe",     false)]
-    public void IsTrustedLocation_ReturnsFalse_ForUntrustedPaths(string path, bool expected)
+    [InlineData(@"C:\Program Files\WeekNumber\app.exe", false)]
+    [InlineData(@"C:\Users\user\AppData\Local\app.exe", false)]
+    [InlineData(@"C:\Normal Path\app.exe", false)]
+    public void ContainsDangerousCharacters_ReturnsFalse_ForSafePaths(string path, bool expected)
     {
-        var result = InvokeIsTrustedLocation(path);
-        result.ShouldBe(expected);
+        InvokeContainsDangerousCharacters(path).ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("C:\\app|malicious.exe", true)]
+    [InlineData("C:\\app&calc.exe", true)]
+    [InlineData("C:\\app>output.exe", true)]
+    [InlineData("C:\\app<input.exe", true)]
+    [InlineData("C:\\app%PATH%.exe", true)]
+    [InlineData("C:\\app^escape.exe", true)]
+    [InlineData("C:\\app`tick.exe", true)]
+    [InlineData("C:\\app$var.exe", true)]
+    [InlineData("C:\\app{brace}.exe", true)]
+    [InlineData("C:\\app!bang.exe", true)]
+    public void ContainsDangerousCharacters_ReturnsTrue_ForDangerousPaths(string path, bool expected)
+    {
+        InvokeContainsDangerousCharacters(path).ShouldBe(expected);
     }
 
     [Fact]
-    public void IsTrustedLocation_ReturnsTrue_ForAppBaseDirectory()
+    public void ContainsDangerousCharacters_ReturnsTrue_ForControlCharacters()
     {
-        // The test runner's base directory is always treated as trusted.
-        var basePath = Path.Combine(AppContext.BaseDirectory, "app.exe");
-        var result   = InvokeIsTrustedLocation(basePath);
-        result.ShouldBeTrue();
+        var pathWithNull = "C:\\app\x00.exe";
+        InvokeContainsDangerousCharacters(pathWithNull).ShouldBeTrue();
     }
 
     [Fact]
-    public void IsTrustedLocation_ReturnsTrue_ForProgramFilesPath()
+    public void ContainsDangerousCharacters_ReturnsTrue_ForNewline()
     {
-        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        if (string.IsNullOrEmpty(programFiles))
-            return; // Skip on systems where there's no Program Files folder.
-
-        var fakePath = Path.Combine(programFiles, "SomeApp", "app.exe");
-        var result   = InvokeIsTrustedLocation(fakePath);
-        result.ShouldBeTrue();
-    }
-
-    [Fact]
-    public void IsTrustedLocation_IsCaseInsensitive()
-    {
-        var basePath  = Path.Combine(AppContext.BaseDirectory, "app.exe");
-        var upperPath = basePath.ToUpperInvariant();
-
-        InvokeIsTrustedLocation(upperPath).ShouldBeTrue();
+        var pathWithNewline = "C:\\app\n.exe";
+        InvokeContainsDangerousCharacters(pathWithNewline).ShouldBeTrue();
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────
 
-    private static bool InvokeIsTrustedLocation(string path)
+    private static bool InvokeContainsDangerousCharacters(string path)
     {
         var method = typeof(StartupHelper).GetMethod(
-            "IsTrustedLocation",
+            "ContainsDangerousCharacters",
             BindingFlags.NonPublic | BindingFlags.Static)!;
 
         return (bool)method.Invoke(null, [path])!;

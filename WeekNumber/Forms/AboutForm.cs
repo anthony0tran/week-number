@@ -3,7 +3,7 @@ using WeekNumber.Helpers;
 
 namespace WeekNumber.Forms;
 
-public class AboutForm : Form
+public sealed class AboutForm : Form
 {
     private static AboutForm? _instance;
 
@@ -47,7 +47,7 @@ public class AboutForm : Form
         float scale = DeviceDpi / 96f;
 
         int clientW = Scale(380, scale);
-        int clientH = Scale(175, scale);
+        int clientH = Scale(180, scale);
         ClientSize = new Size(clientW, clientH);
 
         var screen = Screen.FromPoint(Cursor.Position);
@@ -67,10 +67,31 @@ public class AboutForm : Form
         int btnH            = Scale(36, scale);
         int btnMarginBottom = Scale(16, scale);
 
+        // Button positioned from the bottom
+        int btnY = clientH - btnH - btnMarginBottom;
+
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Resources", "AppIcon.ico");
         Image iconImage = File.Exists(iconPath)
             ? LoadIconImage(iconPath, iconSize)
             : SystemIcons.Application.ToBitmap();
+
+        var nameFont    = new Font("Segoe UI", 15f, FontStyle.Bold);
+        var versionFont = new Font("Segoe UI", 9f,  FontStyle.Regular);
+
+        // Measure the text block height to center everything together
+        int nameHeight    = TextRenderer.MeasureText("WeekNumber", nameFont).Height;
+        int versionHeight = TextRenderer.MeasureText("Version", versionFont).Height;
+        int textGap       = Scale(4, scale);
+        int textBlockHeight = nameHeight + textGap + versionHeight;
+
+        // The content block is the taller of icon vs text block
+        int contentBlockHeight = Math.Max(iconSize, textBlockHeight);
+
+        // Center the content block vertically in the space above the button
+        int contentAreaTop = (btnY - contentBlockHeight) / 2;
+
+        int iconY = contentAreaTop + (contentBlockHeight - iconSize) / 2;
+        int textTopY = contentAreaTop + (contentBlockHeight - textBlockHeight) / 2;
 
         var picture = new PictureBox
         {
@@ -78,15 +99,11 @@ public class AboutForm : Form
             SizeMode  = PictureBoxSizeMode.Zoom,
             Image     = iconImage,
             BackColor = Color.Transparent,
-            Location  = new Point(pad, (clientH - btnH - btnMarginBottom - iconSize) / 2)
+            Location  = new Point(pad, iconY)
         };
         Controls.Add(picture);
 
-        int textX    = pad + iconSize + gap;
-        int textTopY = picture.Location.Y;
-
-        var nameFont    = new Font("Segoe UI", 15f, FontStyle.Bold);
-        var versionFont = new Font("Segoe UI", 9f,  FontStyle.Regular);
+        int textX = pad + iconSize + gap;
 
         var nameLabel = new Label
         {
@@ -106,7 +123,7 @@ public class AboutForm : Form
             ForeColor = Color.FromArgb(130, 130, 140),
             BackColor = Color.Transparent,
             AutoSize  = true,
-            Location  = new Point(textX + Scale(2, scale), textTopY + nameLabel.PreferredHeight + Scale(4, scale))
+            Location  = new Point(textX + Scale(2, scale), textTopY + nameHeight + textGap)
         };
         Controls.Add(versionLabel);
 
@@ -114,7 +131,7 @@ public class AboutForm : Form
         {
             Text     = "View on GitHub  ↗",
             Size     = new Size(clientW - pad * 2, btnH),
-            Location = new Point(pad, clientH - btnH - btnMarginBottom),
+            Location = new Point(pad, btnY),
             Font     = new Font("Segoe UI", 9f, FontStyle.Regular),
             Cursor   = Cursors.Hand
         };
@@ -124,7 +141,14 @@ public class AboutForm : Form
 
     private static Bitmap LoadIconImage(string iconPath, int size)
     {
-        using var icon = new Icon(iconPath, new Size(size, size));
+        // Validate the icon path stays within the application's base directory
+        // to prevent path traversal attacks via manipulated resources.
+        var baseDir = Path.GetFullPath(AppContext.BaseDirectory);
+        var resolvedPath = Path.GetFullPath(iconPath);
+        if (!resolvedPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+            return SystemIcons.Application.ToBitmap();
+
+        using var icon = new Icon(resolvedPath, new Size(size, size));
         return icon.ToBitmap();
     }
 
