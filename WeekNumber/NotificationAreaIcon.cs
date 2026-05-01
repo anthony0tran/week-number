@@ -15,8 +15,8 @@ public sealed class NotificationAreaIcon : IDisposable
     private readonly IIconFactory _iconFactory;
     private bool _disposed;
     private const int IconSizeInPixels = 32;
-    private static FontStyle _currentFontStyle = ValidateFontStyle(Properties.Settings.Default.SelectedFontStyle);
-    private SolidBrush _currentBrush = BrushHelper.GetBrushFromColor(Properties.Settings.Default.SelectedColor);
+    private static FontStyle _currentFontStyle = LoadFontStyle();
+    private SolidBrush _currentBrush = LoadBrush();
     private const string DefaultFontFamily = "Arial";
     private Font _font = new(DefaultFontFamily, IconSizeInPixels, _currentFontStyle, GraphicsUnit.Pixel);
     private Icon? _currentIcon;
@@ -26,6 +26,24 @@ public sealed class NotificationAreaIcon : IDisposable
     {
         const FontStyle allowed = FontStyle.Bold | FontStyle.Italic | FontStyle.Strikeout;
         return (FontStyle)(raw & (int)allowed);
+    }
+
+    private static FontStyle LoadFontStyle()
+    {
+        try { return ValidateFontStyle(Properties.Settings.Default.SelectedFontStyle); }
+        catch { return FontStyle.Regular; }
+    }
+
+    private static SolidBrush LoadBrush()
+    {
+        try
+        {
+            var c = Properties.Settings.Default.SelectedColor;
+            // Clamp to a fully-opaque colour; reject transparent/unset defaults.
+            var safe = Color.FromArgb(255, c.R, c.G, c.B);
+            return BrushHelper.GetBrushFromColor(safe);
+        }
+        catch { return new SolidBrush(Color.White); }
     }
 
     public static NotificationAreaIcon Instance => _instance.Value;
@@ -174,7 +192,9 @@ public sealed class NotificationAreaIcon : IDisposable
 
     internal void UpdateText()
     {
-        _notifyIcon.Text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
+        // Truncate tooltip text to NotifyIcon's 63 char limit to prevent buffer issues.
+        var text = $"Last updated on: {_weekNumber.LastUpdated.ToString("g", new CultureInfo("nl-NL"))}";
+        _notifyIcon.Text = text.Length > 63 ? text[..63] : text;
     }
 
     internal NotifyIcon NotifyIcon => _notifyIcon;
@@ -184,11 +204,21 @@ public sealed class NotificationAreaIcon : IDisposable
         if (_disposed)
             return;
 
+        _disposed = true;
+
+        // Remove event handlers first to prevent callbacks during teardown.
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+        Application.ApplicationExit -= OnApplicationExit;
+        _notifyIcon.MouseClick -= NotifyIcon_LeftMouseClick;
+
+        // Hide the icon immediately to prevent stale tray icons after exit.
+        _notifyIcon.Visible = false;
+
         _notifyIcon.Dispose();
+        _contextMenu.Dispose();
         _currentIcon?.Dispose();
         _font.Dispose();
         _currentBrush.Dispose();
-        _disposed = true;
     }
 
     public void MenuAbout_Click(object? sender, EventArgs e)

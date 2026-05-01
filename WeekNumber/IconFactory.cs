@@ -3,10 +3,22 @@ using System.Runtime.InteropServices;
 
 namespace WeekNumber;
 
-public class IconFactory : IIconFactory
+public sealed class IconFactory : IIconFactory
 {
+    // Constrain week numbers to valid ISO range to prevent unexpected rendering behavior.
+    private const int MinWeekNumber = 1;
+    private const int MaxWeekNumber = 53;
+    private const int MaxIconSize = 256;
+
     public Icon CreateNumberIcon(int number, Font font, Brush brush, int iconSize)
     {
+        // Input validation: reject out-of-range values that could indicate corruption or tampering.
+        if (number < MinWeekNumber || number > MaxWeekNumber)
+            number = Math.Clamp(number, MinWeekNumber, MaxWeekNumber);
+
+        if (iconSize <= 0 || iconSize > MaxIconSize)
+            iconSize = 32;
+
         using var bitmap = new Bitmap(iconSize, iconSize);
         using var graphics = Graphics.FromImage(bitmap);
         graphics.Clear(Color.Transparent);
@@ -40,6 +52,7 @@ public class IconFactory : IIconFactory
         }
     }
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DestroyIcon(IntPtr handle);
 }
