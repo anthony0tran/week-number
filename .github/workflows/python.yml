@@ -26,12 +26,13 @@ jobs:
 
     - name: Install dependencies
       working-directory: ${{ env.Python_Project_Path }}
+      shell: pwsh
       run: |
         python -m pip install --upgrade pip
-        if (Test-Path requirements.txt) { pip install -r requirements.txt }
-        pip install pytest pytest-cov
+        pip install -r requirements.txt
 
     - name: Test
       working-directory: ${{ env.Python_Project_Path }}
+      shell: pwsh
       run: pytest tests/ --tb=short --verbosity=1 --cov=. --cov-report=term-missing
 
