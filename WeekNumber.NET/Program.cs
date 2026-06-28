@@ -43,8 +43,8 @@ internal static class Program
     {
         // Show a minimal, non-revealing error message and exit cleanly.
         MessageBox.Show(
-            "WeekNumber encountered an unexpected error and needs to close.",
-            "WeekNumber",
+            "WeekNumber.NET encountered an unexpected error and needs to close.",
+            "WeekNumber.NET",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error);
 

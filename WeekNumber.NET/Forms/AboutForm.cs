@@ -34,7 +34,7 @@ public sealed class AboutForm : Form
     private void InitializeForm()
     {
         AutoScaleMode = AutoScaleMode.None;
-        Text = "WeekNumber";
+        Text = "WeekNumber.NET";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.Manual;
         MaximizeBox = false;
@@ -79,7 +79,7 @@ public sealed class AboutForm : Form
         var versionFont = new Font("Segoe UI", 9f,  FontStyle.Regular);
 
         // Measure the text block height to center everything together
-        int nameHeight    = TextRenderer.MeasureText("WeekNumber", nameFont).Height;
+        int nameHeight    = TextRenderer.MeasureText("WeekNumber.NET", nameFont).Height;
         int versionHeight = TextRenderer.MeasureText("Version", versionFont).Height;
         int textGap       = Scale(4, scale);
         int textBlockHeight = nameHeight + textGap + versionHeight;
@@ -107,7 +107,7 @@ public sealed class AboutForm : Form
 
         var nameLabel = new Label
         {
-            Text      = "WeekNumber",
+            Text      = "WeekNumber.NET",
             Font      = nameFont,
             ForeColor = Color.FromArgb(20, 20, 20),
             BackColor = Color.Transparent,

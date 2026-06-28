@@ -30,6 +30,7 @@
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <DebugType>none</DebugType>
         <DebugSymbols>false</DebugSymbols>
+        <RootNamespace>WeekNumber</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
       <None Update="Resources\AppIcon.ico">

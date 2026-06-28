@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeekNumber", "WeekNumber\WeekNumber.csproj", "{70CC67DB-9DC7-44B7-953F-48EC79A22E1F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeekNumber.NET", "WeekNumber.NET\WeekNumber.NET.csproj", "{70CC67DB-9DC7-44B7-953F-48EC79A22E1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeekNumber.Tests", "WeekNumber.Tests\WeekNumber.Tests.csproj", "{050BDF41-B206-4AE5-AFA3-E222369B8C4C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeekNumber.NET.Tests", "WeekNumber.NET.Tests\WeekNumber.NET.Tests.csproj", "{050BDF41-B206-4AE5-AFA3-E222369B8C4C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -48,7 +48,7 @@ public class StartupHelperTests
     // ── ContainsDangerousCharacters (private) ──────────────────────────────────
 
     [Theory]
-    [InlineData(@"C:\Program Files\WeekNumber\app.exe", false)]
+    [InlineData(@"C:\Program Files\WeekNumber.NET\app.exe", false)]
     [InlineData(@"C:\Users\user\AppData\Local\app.exe", false)]
     [InlineData(@"C:\Normal Path\app.exe", false)]
     public void ContainsDangerousCharacters_ReturnsFalse_ForSafePaths(string path, bool expected)
