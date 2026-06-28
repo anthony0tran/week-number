@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Version>4.0</Version>
+        <Version>4.0.1</Version>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
@@ -16,16 +16,28 @@
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <ApplicationManifest>app.manifest</ApplicationManifest>
 
+        <!-- ═══ Security hardening ═══ -->
+        <!-- CET Shadow Stack: hardware-enforced return address protection (Intel CET / AMD Shadow Stack) -->
+        <CETCompat>true</CETCompat>
+        <!-- Enable NuGet package vulnerability auditing at build time -->
+        <NuGetAudit>true</NuGetAudit>
+        <NuGetAuditLevel>low</NuGetAuditLevel>
+        <NuGetAuditMode>all</NuGetAuditMode>
+
         <!-- Size optimisations -->
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <DebugType>none</DebugType>
         <DebugSymbols>false</DebugSymbols>
+        <RootNamespace>WeekNumber</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
       <None Update="Resources\AppIcon.ico">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="11.0.0-preview.5.26302.115" />
     </ItemGroup>
 </Project>

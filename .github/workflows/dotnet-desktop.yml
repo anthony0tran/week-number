@@ -16,8 +16,8 @@ jobs:
 
     env:
       Solution_Name: WeekNumber.sln
-      Project_Path: WeekNumber/WeekNumber.csproj
-      Test_Project_Path: WeekNumber.Tests/WeekNumber.Tests.csproj
+      Project_Path: WeekNumber.NET/WeekNumber.NET.csproj
+      Test_Project_Path: WeekNumber.NET.Tests/WeekNumber.NET.Tests.csproj
 
     steps:
     - name: Checkout
@@ -31,10 +31,10 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore dependencies
-      run: dotnet restore ${{ env.Project_Path }}
+      run: dotnet restore ${{ env.Solution_Name }}
 
     - name: Build
-      run: dotnet build ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
 
     - name: Test
       run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
@@ -43,4 +43,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: WeekNumber-${{ matrix.configuration }}
-        path: WeekNumber/bin/${{ matrix.configuration }}/net10.0-windows/
+        path: WeekNumber.NET/bin/${{ matrix.configuration }}/net10.0-windows/

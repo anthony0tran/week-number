@@ -6,5 +6,5 @@ using System.Runtime.InteropServices;
 
 // InternalsVisibleTo without a public key is only safe when strong-naming is enabled.
 // Once the assembly is strong-named, replace the value below with:
-//   "WeekNumber.Tests, PublicKey=<hex-public-key>"
-[assembly: InternalsVisibleTo("WeekNumber.Tests")]
+//   "WeekNumber.NET.Tests, PublicKey=<hex-public-key>"
+[assembly: InternalsVisibleTo("WeekNumber.NET.Tests")]
