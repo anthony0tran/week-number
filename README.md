@@ -1,3 +1,19 @@
+<div align="center">
+
+# ⚠️ Repository Archived
+
+[![Status: Archived](https://img.shields.io/badge/Status-Archived-red?style=for-the-badge)](https://github.com/Shanko100/ISOWeekNumber)
+[![Maintained: No](https://img.shields.io/badge/Maintained-No-lightgrey?style=for-the-badge)](https://github.com/Shanko100/ISOWeekNumber)
+
+> **This repository is no longer maintained.**  
+> Development has moved to the new repository:
+
+[![New Repository: ISOWeekNumber](https://img.shields.io/badge/New_Repository-ISOWeekNumber-blue?style=for-the-badge&logo=github)](https://github.com/Shanko100/ISOWeekNumber)
+
+</div>
+
+---
+
 # Week Number 📅
 
 Never lose track of the current week again. 🗓️
